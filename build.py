@@ -306,6 +306,27 @@ def sidebar(d: Data, path: str) -> str:
             f'</header>')
 
 
+def side(d: Data, path: str) -> str:
+    """PC 왼쪽 '로또신령 전체 목록'(2026-10-18 사용자: 브라우저에서도 사이드바가 보여야) — 휴대폰에선 숨기고 위쪽 메뉴 줄을 쓴다."""
+    def link(href, label, ext=False):
+        cur = ' aria-current="page"' if href == path else ""
+        rel = ' rel="noopener" target="_blank"' if ext else ""
+        return f'<li><a href="{e(href)}"{cur}{rel}>{e(label)}</a></li>'
+
+    site = "".join(link(h, lab) for h, lab in NAV)
+    recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
+    manual = "".join(link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
+    chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
+    return (f'<aside class="side" aria-label="로또신령 전체 목록">'
+            f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="34" height="34">로또신령</a>'
+            f'<div class="grp"><h3>홈페이지</h3><ul>{site}</ul></div>'
+            f'<div class="grp"><h3>최근 회차</h3><ul>{recent}</ul></div>'
+            f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
+            f'<li class="note">아이폰: 앱스토어에서 \'로또신령\' 검색</li></ul></div>'
+            f'<div class="grp"><h3>사용설명서</h3><ul>{manual}</ul></div>'
+            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></aside>')
+
+
 NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
        ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"),
        ("/about/", "앱 소개")]
@@ -332,10 +353,10 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">{extra_head}</head>
-<body>{sidebar(d, path)}<div class="content">
+<body>{sidebar(d, path)}<div class="shell">{side(d, path)}<div class="content">
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
-<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></body></html>"""
+<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
 
 
 # ── 페이지들 ───────────────────────────────────────────────────────────
@@ -346,8 +367,8 @@ def round_page(d: Data, rnd: int) -> str:
     next_ = f'<a href="/round/{rnd + 1}/">{rnd + 1}회 →</a>' if rnd + 1 in d.draws else "<span></span>"
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}</article>'
-            f'<div class="cols"><div class="col">{result_block(d, rnd)}</div>'
-            f'<div class="col"><section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{our_block(d, rnd)}'
+            f'<div class="cols"><div class="col"><p class="colhead">공식 추첨결과 · 1등 명당</p>{result_block(d, rnd)}</div>'
+            f'<div class="col"><p class="colhead">번호 분석 · 로또신령 기록</p><section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{our_block(d, rnd)}'
             f'{talisman_block(d, rnd)}</div></div>'
             f'{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
             f'<a href="/rounds/">전체 회차</a>{next_}</nav>')
@@ -364,8 +385,8 @@ def index_page(d: Data) -> str:
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}'
             f'<p class="more"><a href="/round/{rnd}/">{rnd}회 자세히 보기</a></p></article>'
-            f'<div class="cols"><div class="col">{result_block(d, rnd, compact=True)}{our_block(d)}</div>'
-            f'<div class="col">{ent_block(d)}{tarot_block(d)}{talisman_block(d, rnd, True)}'
+            f'<div class="cols"><div class="col"><p class="colhead">이번 회차 결과</p>{result_block(d, rnd, compact=True)}{our_block(d)}</div>'
+            f'<div class="col"><p class="colhead">이번 주 이야기</p>{ent_block(d)}{tarot_block(d)}{talisman_block(d, rnd, True)}'
             f'<section><h2>지난 회차</h2><ol class="recent">{recent}</ol>'
             f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section></div></div>{install_block(d)}')
     nums = ", ".join(map(str, dr["nums"]))

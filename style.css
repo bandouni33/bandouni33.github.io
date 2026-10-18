@@ -181,3 +181,25 @@ main > h1:first-child{margin-top:22px}
   .grid.list th,.grid.list td{padding:8px 6px}
   .grid.list td:last-child{white-space:normal}
 }
+
+/* PC: 왼쪽 사이드바 + 위쪽 머리줄은 휴대폰 전용 */
+.side{display:none}
+@media (min-width:900px){
+  .top{display:none}
+  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;margin:0 auto}
+  .side{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:18px 14px 32px;
+    border-right:1px solid var(--line)}
+  .side .brand{margin-bottom:14px}
+  .side .grp{margin-bottom:16px}
+  main,footer{max-width:none}
+}
+/* 2단 구분: 칸 제목 띠 + 가운데 세로선 */
+.colhead{margin:28px 0 0;padding:8px 12px;border-left:4px solid var(--gold);background:var(--panel);border-radius:0 6px 6px 0;
+  font:700 15px var(--sans);color:var(--gold);max-width:none}
+.cols .col > .colhead + section,.cols .col > .colhead + .ent{margin-top:4px}
+@media (min-width:1000px){
+  .cols{gap:0 0}
+  .cols .col:first-child{padding-right:32px}
+  .cols .col + .col{padding-left:32px;border-left:2px solid var(--line)}
+}
+.colhead + section > h2:first-child,.colhead + .ent > h2:first-child{margin-top:16px}
