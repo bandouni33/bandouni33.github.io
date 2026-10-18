@@ -272,7 +272,9 @@ def about_page(d: Data) -> str:
 
 def notfound_page(d: Data) -> str:
     return page(d, "/404.html", f"페이지를 찾을 수 없습니다 | {SITE_NAME}", "요청한 페이지가 없습니다.",
-                f'<h1>페이지를 찾을 수 없습니다</h1><p>주소를 확인하거나 <a href="/">최신 회차</a>로 이동하세요.</p>')
+                f'<h1>페이지를 찾을 수 없습니다</h1><p>주소를 확인하거나 <a href="/">최신 회차</a>로 이동하세요.</p>'
+                # 토요일 즉시 게시 링크(/round/<다음 회차>/)는 공식 발표 반영 전 약 1시간 동안 페이지가 없다 → 최신 회차로
+                f'<script>if(/^\\/round\\/\\d+\\/?$/.test(location.pathname))location.replace("/");</script>')
 
 
 # ── 검색엔진용 파일 ───────────────────────────────────────────────────
