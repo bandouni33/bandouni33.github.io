@@ -203,3 +203,31 @@ main > h1:first-child{margin-top:22px}
   .cols .col + .col{padding-left:32px;border-left:2px solid var(--line)}
 }
 .colhead + section > h2:first-child,.colhead + .ent > h2:first-child{margin-top:16px}
+
+/* 맨 위 고정 앱 안내 띠(모든 페이지) */
+.sticky{position:sticky;top:0;z-index:30}
+.sticky .top{position:static}
+.appbar{background:linear-gradient(90deg,#2a2357,#1d2447);border-bottom:1px solid var(--line)}
+.appbar-in{display:flex;align-items:center;gap:12px;max-width:1440px;margin:0 auto;padding:8px 20px}
+.appbar img{border-radius:7px;flex:none}
+.appbar p{margin:0;flex:1;min-width:0;font-size:14px;max-width:none}
+.appbar b{color:var(--gold)}
+.appbar .ab-pt{color:var(--ink);font-weight:700}
+.appbar .btn{padding:7px 14px;font-size:14px;white-space:nowrap}
+@media (min-width:900px){.side{top:57px;max-height:calc(100vh - 57px)}}
+@media (max-width:899px){
+  .appbar-in{padding:7px 12px;gap:8px}
+  .appbar .ab-long,.appbar .ab-manual{display:none}
+  .appbar p{font-size:13px}
+  .appbar .btn{padding:6px 11px;font-size:13px}
+}
+
+@media (max-width:899px){
+  .appbar .ab-first{display:none}
+  .appbar p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 로고는 앱 띠에 있으니 휴대폰 머리줄은 메뉴 줄 + [전체 메뉴] 한 줄로 */
+  .top .brand{display:none}
+  .bar{flex-wrap:nowrap;padding:6px 12px;align-items:center}
+  .topnav{order:0;flex:1 1 auto;padding:0}
+  .menu{flex:none}
+}

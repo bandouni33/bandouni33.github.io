@@ -96,7 +96,21 @@ def seal(rnd: int) -> str:
     return f'<div class="seal" aria-hidden="true"><span>제</span><b>{rnd}</b><span>회</span></div>'
 
 
+def app_bar(d: Data) -> str:
+    """모든 페이지 맨 위 고정 앱 안내 띠(2026-10-18 사용자 지시: 최상단 고정, 스크롤해도 보이게)."""
+    return (f'<div class="appbar"><div class="appbar-in">'
+            f'<img src="/img/icon.png" alt="" width="30" height="30">'
+            f'<p><b>로또신령 앱</b><span class="ab-long"> — 필터로 거른 자동조합·번개조합·타로점까지.</span>'
+            f'<span class="ab-pt"> <span class="ab-first">첫 가입 </span>500P 무료 체험</span></p>'
+            f'<a class="btn primary" href="{e(d.links["play"])}" rel="noopener">구글 플레이에서 설치</a>'
+            f'<a class="btn ab-manual" href="{e(d.links["manual"])}" rel="noopener">사용설명서</a></div></div>')
+
+
 def install_block(d: Data) -> str:
+    return ""   # 2026-10-18: 앱 안내는 맨 위 고정 띠(app_bar)로 옮김 — 같은 안내를 두 번 두지 않는다
+
+
+def _old_install_block(d: Data) -> str:
     return (f'<section class="install"><h2>로또신령 앱</h2>'
             f'<p>필터로 거른 자동조합, 번개조합, 타로점, 받은 조합 저장까지 앱에서 이어집니다. '
             f'첫 가입 시 500P로 번호 조합을 무료로 체험할 수 있습니다.</p>'
@@ -356,7 +370,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
-<body>{sidebar(d, path)}<div class="shell">{side(d, path)}<div class="content">
+<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content">
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
 <p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
