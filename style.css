@@ -214,7 +214,7 @@ main > h1:first-child{margin-top:22px}
 .appbar b{color:var(--gold)}
 .appbar .ab-pt{color:var(--ink);font-weight:700}
 .appbar .btn{padding:7px 14px;font-size:14px;white-space:nowrap}
-@media (min-width:900px){.side{top:57px;max-height:calc(100vh - 57px)}}
+
 @media (max-width:899px){
   .appbar-in{padding:7px 12px;gap:8px}
   .appbar .ab-long,.appbar .ab-manual{display:none}
@@ -231,3 +231,14 @@ main > h1:first-child{margin-top:22px}
   .topnav{order:0;flex:1 1 auto;padding:0}
   .menu{flex:none}
 }
+
+/* PC: 앱 안내는 사이드바 맨 위 카드(사이드바 고정이라 늘 보임), 위쪽 띠는 휴대폰 전용 */
+@media (min-width:900px){
+  .appbar{display:none}
+  .side{top:0;max-height:100vh;scrollbar-width:none}
+  .side::-webkit-scrollbar{display:none}
+}
+.appcard{margin:0 0 18px;padding:14px;border-radius:10px;background:linear-gradient(160deg,#2a2357,#1d2447);border:1px solid var(--line)}
+.appcard b{display:block;font:700 16px var(--serif);color:var(--gold)}
+.appcard p{margin:6px 0 10px;font-size:13px;line-height:1.55;color:var(--ink)}
+.appcard .btn{display:block;text-align:center;padding:9px 10px;font-size:14px;margin-top:6px}
