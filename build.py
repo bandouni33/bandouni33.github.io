@@ -42,6 +42,7 @@ class Data:
         self.question = raw.get("question")
         self.answer = raw.get("answer")
         self.talismans = set(raw.get("talismans", []))
+        self.results = {int(k): v for k, v in raw.get("results", {}).items()}
 
     def analyze(self, rnd: int) -> dict:
         nums = self.draws[rnd]["nums"]
@@ -170,6 +171,36 @@ def ent_block(d: Data) -> str:
             f'{ball(d, star["n"], "big")}<span><b>{e(h["title"])}</b>'
             f'<span class="small">{h["round"]}회 기준 · 포지션 {star["position"]} · 통산 {star["total"]}회 무대</span></span></a>'
             f'{qa}<p class="more"><a href="/members/">45인조 전체 보기</a></p></section>')
+
+
+def eok(won: int) -> str:
+    won = int(won)
+    e_, rest = divmod(won, 100_000_000)
+    man, one = divmod(rest, 10_000)
+    if e_:
+        return f"{e_}억 {man:,}만원" if man else f"{e_}억원"
+    if man:
+        return f"{man:,}만 {one:,}원" if one else f"{man:,}만원"
+    return f"{won:,}원"
+
+
+def result_block(d: Data, rnd: int) -> str:
+    """동행복권 공식 결과 — 등수별 당첨자·금액, 1등 판매점(명당)."""
+    res = d.results.get(rnd)
+    if not res:
+        return ""
+    rows = "".join(f'<tr><th scope="row">{r["rank"]}등</th><td>{r["count"]:,}명</td><td>{eok(r["amount"])}</td></tr>'
+                   for r in res["ranks"])
+    kinds = " · ".join(f"{k} {v}" for k, v in res.get("first_kinds", {}).items())
+    shops = "".join(f'<tr><td>{e(s["region"])}</td><td><b>{e(s["name"])}</b><br><span class="small">{e(s["addr"])}</span></td>'
+                    f'<td>{e(s["kind"])}</td></tr>' for s in res.get("first_shops", []))
+    regions = ", ".join(f"{k} {v}곳" for k, v in res.get("first_regions", [])[:6])
+    return (f'<section><h2>추첨결과</h2><table class="grid"><thead><tr><th scope="col">등수</th><th scope="col">당첨자</th>'
+            f'<th scope="col">1명당 당첨금</th></tr></thead><tbody>{rows}</tbody></table>'
+            + (f'<p class="small">1등 구매 방식: {kinds} · 총 판매액 {eok(res["sales"])}</p>' if kinds else "")
+            + (f'</section><section><h2>1등 명당</h2><p>{regions}</p><table class="grid shops"><thead><tr><th scope="col">지역</th>'
+               f'<th scope="col">판매점</th><th scope="col">방식</th></tr></thead><tbody>{shops}</tbody></table>' if shops else "")
+            + '<p class="small">출처: 동행복권 공식 발표</p></section>')
 
 
 def talisman_block(d: Data, rnd: int, big: bool = False) -> str:
@@ -302,7 +333,7 @@ def round_page(d: Data, rnd: int) -> str:
     next_ = f'<a href="/round/{rnd + 1}/">{rnd + 1}회 →</a>' if rnd + 1 in d.draws else "<span></span>"
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}</article>'
-            f'<section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{talisman_block(d, rnd)}'
+            f'{result_block(d, rnd)}<section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{talisman_block(d, rnd)}'
             f'{our_block(d, rnd)}{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
             f'<a href="/rounds/">전체 회차</a>{next_}</nav>')
     title = f"제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']} | {SITE_NAME}"

@@ -151,3 +151,4 @@ footer a{margin-right:8px}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-top:18px}
 .tcell{color:var(--ink);text-decoration:none;font-size:14px}
 .tcell img{display:block;width:100%;height:auto;border-radius:4px;margin-bottom:6px}
+.shops td{vertical-align:top}.shops .small{font-size:12px}
