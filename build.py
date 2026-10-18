@@ -19,6 +19,9 @@ from xml.sax.saxutils import escape as xesc
 HERE = Path(__file__).resolve().parent
 SITE_URL = "https://bandouni33.github.io"
 SITE_NAME = "로또신령"
+import hashlib as _hl
+
+CSS_VER = _hl.md5((HERE / "style.css").read_bytes()).hexdigest()[:8]   # 디자인 파일이 바뀌면 주소가 바뀌어 브라우저가 새로 받음
 NAVER_VERIFY = (HERE / "naver_verification.txt").read_text().strip() if (HERE / "naver_verification.txt").exists() else ""
 GOOGLE_VERIFY = (HERE / "google_verification.txt").read_text().strip() if (HERE / "google_verification.txt").exists() else ""
 DISCLAIMER = "참고·재미용 정보이며 당첨을 보장하지 않습니다. 복권은 만 19세 이상 구매할 수 있습니다."
@@ -352,7 +355,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="icon" href="/img/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/style.css">{extra_head}</head>
+<link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
 <body>{sidebar(d, path)}<div class="shell">{side(d, path)}<div class="content">
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
