@@ -184,7 +184,7 @@ def eok(won: int) -> str:
     return f"{won:,}원"
 
 
-def result_block(d: Data, rnd: int) -> str:
+def result_block(d: Data, rnd: int, compact: bool = False) -> str:
     """동행복권 공식 결과 — 등수별 당첨자·금액, 1등 판매점(명당)."""
     res = d.results.get(rnd)
     if not res:
@@ -195,6 +195,15 @@ def result_block(d: Data, rnd: int) -> str:
     shops = "".join(f'<tr><td>{e(s["region"])}</td><td><b>{e(s["name"])}</b><br><span class="small">{e(s["addr"])}</span></td>'
                     f'<td>{e(s["kind"])}</td></tr>' for s in res.get("first_shops", []))
     regions = ", ".join(f"{k} {v}곳" for k, v in res.get("first_regions", [])[:6])
+    if compact:   # 메인: 주소 없이 2열 칩(주소는 회차 페이지)
+        shops = "".join(f'<li><span class="rg">{e(s["region"])}</span>{e(s["name"])}<span class="kd">{e(s["kind"])}</span></li>'
+                        for s in res.get("first_shops", []))
+        return (f'<section><h2>추첨결과</h2><table class="grid"><thead><tr><th scope="col">등수</th><th scope="col">당첨자</th>'
+                f'<th scope="col">1명당 당첨금</th></tr></thead><tbody>{rows}</tbody></table>'
+                + (f'<p class="small">1등 구매 방식: {kinds}</p>' if kinds else "")
+                + (f'</section><section><h2>1등 명당</h2><p>{regions}</p><ul class="shopchips">{shops}</ul>'
+                   f'<p class="more"><a href="/round/{rnd}/">판매점 주소까지 보기</a></p>' if shops else "")
+                + '</section>')
     return (f'<section><h2>추첨결과</h2><table class="grid"><thead><tr><th scope="col">등수</th><th scope="col">당첨자</th>'
             f'<th scope="col">1명당 당첨금</th></tr></thead><tbody>{rows}</tbody></table>'
             + (f'<p class="small">1등 구매 방식: {kinds} · 총 판매액 {eok(res["sales"])}</p>' if kinds else "")
@@ -270,27 +279,28 @@ def talisman_page(d: Data) -> str:
 
 # ── 페이지 틀 ──────────────────────────────────────────────────────────
 def sidebar(d: Data, path: str) -> str:
-    """모든 페이지 왼쪽 '로또신령 전체 목록'(2026-10-18 사용자 지시) — PC는 항상 보이고, 휴대폰은 [전체 메뉴]로 펼침."""
+    """모든 페이지 위쪽 얇은 머리줄(2026-10-18 사용자 지시: 왼쪽 고정 목록 대신 위쪽에 짧게, 본문은 넓게 같이 스크롤).
+    주요 메뉴는 늘 보이고, 나머지 '로또신령 전체 목록'은 [전체 메뉴]를 눌러 펼친다(PC·휴대폰 같은 방식)."""
     def link(href, label, ext=False):
         cur = ' aria-current="page"' if href == path else ""
         rel = ' rel="noopener" target="_blank"' if ext else ""
         return f'<li><a href="{e(href)}"{cur}{rel}>{e(label)}</a></li>'
 
     site = "".join(link(h, lab) for h, lab in NAV)
+    top = "".join(f'<a href="{h}"{" aria-current=page" if h == path else ""}>{lab}</a>' for h, lab in NAV)
     recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
     manual = "".join(link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
-    return (f'<aside class="side" aria-label="로또신령 전체 목록">'
-            f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="36" height="36">로또신령</a>'
-            f'<details class="menu" id="menu" open><summary>전체 메뉴</summary>'
+    return (f'<header class="top"><div class="bar">'
+            f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="32" height="32">로또신령</a>'
+            f'<nav class="topnav" aria-label="주요 메뉴">{top}</nav>'
+            f'<details class="menu"><summary>전체 메뉴</summary><div class="panel" aria-label="로또신령 전체 목록">'
             f'<div class="grp"><h3>홈페이지</h3><ul>{site}</ul></div>'
             f'<div class="grp"><h3>최근 회차</h3><ul>{recent}</ul></div>'
             f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
             f'<li class="note">아이폰: 앱스토어에서 \'로또신령\' 검색</li></ul></div>'
             f'<div class="grp"><h3>사용설명서</h3><ul>{manual}</ul></div>'
-            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></details>'
-            f'<script>if(matchMedia("(max-width:899px)").matches)document.getElementById("menu").removeAttribute("open")</script>'
-            f'</aside>')
+            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></div></details></div></header>')
 
 
 NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
@@ -319,10 +329,10 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">{extra_head}</head>
-<body><div class="shell">{sidebar(d, path)}<div class="content">
+<body>{sidebar(d, path)}<div class="content">
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
-<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
+<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></body></html>"""
 
 
 # ── 페이지들 ───────────────────────────────────────────────────────────
@@ -333,8 +343,10 @@ def round_page(d: Data, rnd: int) -> str:
     next_ = f'<a href="/round/{rnd + 1}/">{rnd + 1}회 →</a>' if rnd + 1 in d.draws else "<span></span>"
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}</article>'
-            f'{result_block(d, rnd)}<section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{talisman_block(d, rnd)}'
-            f'{our_block(d, rnd)}{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
+            f'<div class="cols"><div class="col">{result_block(d, rnd)}</div>'
+            f'<div class="col"><section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{our_block(d, rnd)}'
+            f'{talisman_block(d, rnd)}</div></div>'
+            f'{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
             f'<a href="/rounds/">전체 회차</a>{next_}</nav>')
     title = f"제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']} | {SITE_NAME}"
     desc = f"{date_kr(dr['date'])} 추첨 제{rnd}회 로또 6/45 당첨번호는 {nums}, 보너스 {dr['bonus']}입니다. 홀짝·합계·번호대 분석."
@@ -345,13 +357,14 @@ def index_page(d: Data) -> str:
     rnd = d.latest
     dr = d.draws[rnd]
     recent = "".join(f'<li><a href="/round/{r}/"><span class="r">{r}회</span>{balls_row(d, r, "sm")}</a></li>'
-                     for r in sorted(d.draws, reverse=True)[1:11])
+                     for r in sorted(d.draws, reverse=True)[1:7])
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}'
             f'<p class="more"><a href="/round/{rnd}/">{rnd}회 자세히 보기</a></p></article>'
-            f'{ent_block(d)}{talisman_block(d, rnd, True)}{tarot_block(d)}{our_block(d)}'
+            f'<div class="cols"><div class="col">{result_block(d, rnd, compact=True)}{our_block(d)}</div>'
+            f'<div class="col">{ent_block(d)}{tarot_block(d)}{talisman_block(d, rnd, True)}'
             f'<section><h2>지난 회차</h2><ol class="recent">{recent}</ol>'
-            f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section>{install_block(d)}')
+            f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section></div></div>{install_block(d)}')
     nums = ", ".join(map(str, dr["nums"]))
     return page(d, "/", f"로또 당첨번호 제{rnd}회 | {SITE_NAME}",
                 f"최신 제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']}. 회차별 당첨번호, 번호 통계, 실수령액 계산, 이번 주 신령 타로.",
