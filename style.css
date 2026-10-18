@@ -244,3 +244,4 @@ main > h1:first-child{margin-top:22px}
 .install{display:flex;align-items:center;gap:24px}
 .install .ins-icon{flex:none;border-radius:22px;box-shadow:0 4px 16px rgba(0,0,0,.35)}
 .install .ins-body{min-width:0}
+.install .ins-icon{width:212px;height:212px;object-fit:cover}
