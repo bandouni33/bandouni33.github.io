@@ -1,0 +1,94 @@
+/* 로또신령 — 밤하늘(남색) + 부적 종이(금빛) + 인주(붉은 도장) */
+:root{
+  --night:#151b36; --deep:#0e1229; --panel:#1d2447; --line:#2e3764;
+  --gold:#e8c770; --seal:#c8322b; --ink:#eef0f7; --muted:#a8afc8;
+  --serif:"Gowun Batang",serif; --sans:"Noto Sans KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--deep)}
+body{margin:0;color:var(--ink);font:400 16px/1.7 var(--sans);
+  background:radial-gradient(1200px 600px at 80% -10%,#2a2357 0%,transparent 60%),var(--night);min-height:100vh}
+a{color:var(--gold)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;max-width:760px;margin:0 auto;padding:16px}
+.brand{display:flex;align-items:center;gap:8px;font:700 20px var(--serif);color:var(--ink);text-decoration:none}
+.brand img{border-radius:8px}
+.top nav{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px}
+.top nav a{color:var(--muted);text-decoration:none}
+.top nav a[aria-current]{color:var(--gold)}
+main{max-width:760px;margin:0 auto;padding:0 16px 40px}
+h1,h2{font-family:var(--serif);font-weight:700;line-height:1.3}
+h1{font-size:30px;margin:0}
+h2{font-size:21px;margin:40px 0 10px;color:var(--gold)}
+p{max-width:65ch}
+.small{font-size:13px;color:var(--muted)}
+
+/* 첫 화면: 부적 한 장 */
+.hero{position:relative;margin-top:16px;padding:28px 24px 24px;border-radius:6px;color:#2a2210;
+  background:linear-gradient(180deg,#f3dd93,#e2bf5e);box-shadow:0 18px 40px -20px #000}
+.hero h1{color:#2a2210;font-size:28px}
+.hero .date{margin:2px 0 18px;color:#5a4a1d}
+.hero .more{margin:14px 0 0}.hero .more a{color:#7a1e18;font-weight:700}
+.seal{position:absolute;top:18px;right:18px;width:78px;height:78px;border:3px solid var(--seal);border-radius:8px;
+  color:var(--seal);display:grid;place-items:center;align-content:center;transform:rotate(-6deg);
+  font-family:var(--serif);line-height:1;opacity:.92}
+.seal b{font-size:24px}.seal span{font-size:13px}
+.hero .title{padding-right:92px}
+
+.balls{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ball{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;font:700 15px var(--sans);
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.25)}
+.ball.big{width:52px;height:52px;font-size:22px}
+.ball.sm{width:28px;height:28px;font-size:13px}
+.plus{font-weight:700;opacity:.6;padding:0 2px}
+@media (max-width:420px){.ball.big{width:38px;height:38px;font-size:16px}.balls{gap:5px}.hero{padding:22px 14px 18px}
+  .hero h1{font-size:23px}.seal{width:62px;height:62px;top:14px;right:12px}.seal b{font-size:18px}.hero .title{padding-right:70px}}
+
+/* 타로 */
+.tarot{display:flex;gap:20px;align-items:flex-start;margin-top:36px}
+.tarot img{width:120px;height:auto;border-radius:6px;border:1px solid var(--line);flex:none}
+.tarot h2{margin-top:0}
+.card-name{font:700 19px var(--serif);margin:0}.card-name span{font:400 13px var(--sans);color:var(--muted)}
+.quote{font-family:var(--serif);font-size:18px;line-height:1.8}
+
+/* 표 */
+.grid{width:100%;border-collapse:collapse;font-size:15px}
+.grid th,.grid td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+.grid thead th{color:var(--muted);font-weight:500;font-size:13px}
+.grid td{font-variant-numeric:tabular-nums}
+.grid.list .b{color:var(--muted)}
+.stats .bar{display:inline-block;height:8px;margin-right:8px;border-radius:4px;background:var(--gold);opacity:.7;vertical-align:middle;max-width:55%}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:0}
+.facts div{background:var(--panel);padding:12px 14px}.facts .wide{grid-column:1/-1}
+.facts dt{font-size:13px;color:var(--muted)}.facts dd{margin:2px 0 0;font-weight:700;font-size:18px}
+.facts .wide dd{font-size:15px;font-weight:500}
+
+.recent{list-style:none;padding:0;margin:0}
+.recent a{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.recent .r{width:58px;color:var(--muted);font-size:14px}
+.more a{font-weight:500}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:560px){.pair{grid-template-columns:1fr}.tarot{flex-direction:column}}
+.pager{display:flex;justify-content:space-between;margin-top:36px;font-size:15px}
+
+/* 앱 설치 */
+.install{margin-top:44px;padding:22px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+.install h2{margin-top:0}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-block;padding:11px 18px;border-radius:6px;border:1px solid var(--gold);color:var(--gold);
+  text-decoration:none;font-weight:700}
+.btn.primary{background:var(--gold);color:#241c08}
+
+/* 계산기 */
+.calc label{display:block;font-weight:700;margin-bottom:6px}
+.calc input{width:100%;max-width:360px;padding:12px;font:700 20px var(--sans);border-radius:6px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.quick button{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font:500 13px var(--sans);cursor:pointer}
+#res{display:block;margin-top:10px;font-size:17px}#res .big{font-size:26px;color:var(--gold)}
+
+footer{max-width:760px;margin:0 auto;padding:24px 16px 48px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+footer a{margin-right:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}

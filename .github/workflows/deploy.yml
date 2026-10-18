@@ -1,0 +1,68 @@
+name: 홈페이지 만들기·배포
+
+# 앱 저장소(bandouni33/lotto-shinryeong, 공개)가 내보낸 공개 데이터(site_data/data.json)를 읽어
+# 정적 페이지를 만들고 GitHub Pages 로 배포한다. 이 저장소에는 비밀키가 없다.
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 토요일 21:30·22:20·23:20 KST(공식 발표·등수 확정 뒤) + 매일 09:05 KST
+    - cron: "30 12 * * 6"
+    - cron: "20 13,14 * * 6"
+    - cron: "5 0 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: 앱 저장소의 공개 데이터·그림만 가져오기
+        uses: actions/checkout@v4
+        with:
+          repository: bandouni33/lotto-shinryeong
+          path: app
+          sparse-checkout: |
+            site_data
+            tarot/images
+            아이콘815.png
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: 페이지 만들기
+        run: python build.py --data app/site_data/data.json --assets app --out _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - name: 앱 데이터(최신 회차)
+        uses: actions/checkout@v4
+        with:
+          repository: bandouni33/lotto-shinryeong
+          path: app
+          sparse-checkout: site_data
+      - name: 검색엔진에 새 주소 알리기(IndexNow)
+        continue-on-error: true
+        run: python3 ping_indexnow.py app/site_data/data.json
