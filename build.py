@@ -336,9 +336,6 @@ def side(d: Data, path: str) -> str:
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
     return (f'<aside class="side" aria-label="로또신령 전체 목록">'
             f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="34" height="34">로또신령</a>'
-            f'<div class="appcard"><b>로또신령 앱</b><p>필터로 거른 자동조합·번개조합·타로점까지. <strong>첫 가입 500P 무료 체험</strong></p>'
-            f'<a class="btn primary" href="{e(d.links["play"])}" rel="noopener">구글 플레이에서 설치</a>'
-            f'<a class="btn" href="{e(d.links["manual"])}" rel="noopener">사용설명서</a></div>'
             f'<div class="grp"><h3>홈페이지</h3><ul>{site}</ul></div>'
             f'<div class="grp"><h3>최근 회차</h3><ul>{recent}</ul></div>'
             f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
@@ -373,7 +370,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
-<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content">
+<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{app_bar(d)}</div>
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
 <p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""

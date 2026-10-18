@@ -232,13 +232,12 @@ main > h1:first-child{margin-top:22px}
   .menu{flex:none}
 }
 
-/* PC: 앱 안내는 사이드바 맨 위 카드(사이드바 고정이라 늘 보임), 위쪽 띠는 휴대폰 전용 */
+/* PC: 앱 안내 띠는 본문 칸 맨 위 고정(사이드바는 침범하지 않음), 휴대폰은 맨 위 전체 띠 */
+.appbar-pc{display:none}
 @media (min-width:900px){
-  .appbar{display:none}
+  .sticky .appbar{display:none}
+  .appbar-pc{display:block;position:sticky;top:0;z-index:20}
+  .appbar-pc .appbar-in{max-width:none}
   .side{top:0;max-height:100vh;scrollbar-width:none}
   .side::-webkit-scrollbar{display:none}
 }
-.appcard{margin:0 0 18px;padding:14px;border-radius:10px;background:linear-gradient(160deg,#2a2357,#1d2447);border:1px solid var(--line)}
-.appcard b{display:block;font:700 16px var(--serif);color:var(--gold)}
-.appcard p{margin:6px 0 10px;font-size:13px;line-height:1.55;color:var(--ink)}
-.appcard .btn{display:block;text-align:center;padding:9px 10px;font-size:14px;margin-top:6px}
