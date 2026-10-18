@@ -111,12 +111,13 @@ def install_block(d: Data) -> str:
 
 
 def _old_install_block(d: Data) -> str:
-    return (f'<section class="install"><h2>로또신령 앱</h2>'
+    return (f'<section class="install"><img class="ins-icon" src="/img/icon.png" alt="로또신령 앱 아이콘" width="112" height="112">'
+            f'<div class="ins-body"><h2>로또신령 앱</h2>'
             f'<p>필터로 거른 자동조합, 번개조합, 타로점, 받은 조합 저장까지 앱에서 이어집니다. '
             f'첫 가입 시 500P로 번호 조합을 무료로 체험할 수 있습니다.</p>'
             f'<div class="btns"><a class="btn primary" href="{e(d.links["play"])}" rel="noopener">구글 플레이에서 설치</a>'
             f'<a class="btn" href="{e(d.links["manual"])}" rel="noopener">사용설명서 보기</a></div>'
-            f'<p class="small">아이폰은 앱스토어에서 \'로또신령\'을 검색하세요.</p></section>')
+            f'<p class="small">아이폰은 앱스토어에서 \'로또신령\'을 검색하세요.</p></div></section>')
 
 
 def our_block(d: Data, rnd: int | None = None, limit: int = 6) -> str:
