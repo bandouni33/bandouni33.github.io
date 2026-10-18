@@ -340,7 +340,7 @@ def side(d: Data, path: str) -> str:
             f'<div class="grp"><h3>홈페이지</h3><ul>{site}</ul></div>'
             f'<div class="grp"><h3>최근 회차</h3><ul>{recent}</ul></div>'
             f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
-            f'<li class="note">아이폰: 앱스토어에서 \'로또신령\' 검색</li></ul></div>'
+            f'<li class="note">아이폰: 앱스토어 \'로또신령\'</li></ul></div>'
             f'<div class="grp"><h3>사용설명서</h3><ul>{manual}</ul></div>'
             f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></aside>')
 
