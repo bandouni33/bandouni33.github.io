@@ -186,7 +186,7 @@ main > h1:first-child{margin-top:22px}
 .side{display:none}
 @media (min-width:900px){
   .top{display:none}
-  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1440px;margin:0 auto}
+  .shell{display:grid;grid-template-columns:200px minmax(0,1fr);max-width:1440px;margin:0 auto}
   .side{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:18px 14px 32px;
     border-right:1px solid var(--line)}
   .side .brand{margin-bottom:14px}
@@ -199,8 +199,8 @@ main > h1:first-child{margin-top:22px}
 .cols .col > .colhead + section,.cols .col > .colhead + .ent{margin-top:4px}
 @media (min-width:1000px){
   .cols{gap:0 0}
-  .cols .col:first-child{padding-right:32px}
-  .cols .col + .col{padding-left:32px;border-left:2px solid var(--line)}
+  .cols .col:first-child{padding-right:48px}
+  .cols .col + .col{padding-left:48px;border-left:2px solid var(--line)}
 }
 .colhead + section > h2:first-child,.colhead + .ent > h2:first-child{margin-top:16px}
 
@@ -236,7 +236,7 @@ main > h1:first-child{margin-top:22px}
 .appbar-pc{display:none}
 @media (min-width:900px){
   .sticky .appbar{display:none}
-  .appbar-pc{display:block;position:sticky;top:0;z-index:20;max-width:1200px;margin:0 auto;padding:12px 24px 10px;background:var(--night)}
+  .appbar-pc{display:block;position:sticky;top:0;z-index:20;max-width:none;margin:0;padding:12px 24px 10px;background:var(--night)}
   .appbar-pc .install{margin-top:0}
   .side{top:0;max-height:100vh;scrollbar-width:none}
   .side::-webkit-scrollbar{display:none}
