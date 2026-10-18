@@ -134,6 +134,30 @@ def tarot_block(d: Data) -> str:
 
 
 # ── 페이지 틀 ──────────────────────────────────────────────────────────
+def sidebar(d: Data, path: str) -> str:
+    """모든 페이지 왼쪽 '로또신령 전체 목록'(2026-10-18 사용자 지시) — PC는 항상 보이고, 휴대폰은 [전체 메뉴]로 펼침."""
+    def link(href, label, ext=False):
+        cur = ' aria-current="page"' if href == path else ""
+        rel = ' rel="noopener" target="_blank"' if ext else ""
+        return f'<li><a href="{e(href)}"{cur}{rel}>{e(label)}</a></li>'
+
+    site = "".join(link(h, lab) for h, lab in NAV)
+    recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
+    manual = "".join(link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
+    chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
+    return (f'<aside class="side" aria-label="로또신령 전체 목록">'
+            f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="36" height="36">로또신령</a>'
+            f'<details class="menu" id="menu" open><summary>전체 메뉴</summary>'
+            f'<div class="grp"><h3>홈페이지</h3><ul>{site}</ul></div>'
+            f'<div class="grp"><h3>최근 회차</h3><ul>{recent}</ul></div>'
+            f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
+            f'<li class="note">아이폰: 앱스토어에서 \'로또신령\' 검색</li></ul></div>'
+            f'<div class="grp"><h3>사용설명서</h3><ul>{manual}</ul></div>'
+            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></details>'
+            f'<script>if(matchMedia("(max-width:899px)").matches)document.getElementById("menu").removeAttribute("open")</script>'
+            f'</aside>')
+
+
 NAV = [("/", "최신 회차"), ("/rounds/", "전체 회차"), ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"),
        ("/about/", "앱 소개")]
 
@@ -141,7 +165,6 @@ NAV = [("/", "최신 회차"), ("/rounds/", "전체 회차"), ("/stats/", "번�
 def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str = "/img/og.png",
          extra_head: str = "") -> str:
     url = SITE_URL + path
-    nav = "".join(f'<a href="{h}"{" aria-current=page" if h == path else ""}>{lab}</a>' for h, lab in NAV)
     verify = ""
     if NAVER_VERIFY:
         verify += f'<meta name="naver-site-verification" content="{e(NAVER_VERIFY)}">'
@@ -160,11 +183,10 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">{extra_head}</head>
-<body><header class="top"><a class="brand" href="/"><img src="/img/icon.png" alt="" width="36" height="36">로또신령</a>
-<nav aria-label="주요 메뉴">{nav}</nav></header>
+<body><div class="shell">{sidebar(d, path)}<div class="content">
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
-<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></body></html>"""
+<p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
 
 
 # ── 페이지들 ───────────────────────────────────────────────────────────
