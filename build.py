@@ -370,7 +370,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
-<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{app_bar(d)}</div>
+<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{_old_install_block(d)}</div>
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
 <p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""

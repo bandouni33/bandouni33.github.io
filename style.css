@@ -236,8 +236,8 @@ main > h1:first-child{margin-top:22px}
 .appbar-pc{display:none}
 @media (min-width:900px){
   .sticky .appbar{display:none}
-  .appbar-pc{display:block;position:sticky;top:0;z-index:20}
-  .appbar-pc .appbar-in{max-width:none}
+  .appbar-pc{display:block;position:sticky;top:0;z-index:20;max-width:1200px;margin:0 auto;padding:12px 24px 10px;background:var(--night)}
+  .appbar-pc .install{margin-top:0}
   .side{top:0;max-height:100vh;scrollbar-width:none}
   .side::-webkit-scrollbar{display:none}
 }
