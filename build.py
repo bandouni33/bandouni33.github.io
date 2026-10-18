@@ -37,6 +37,11 @@ class Data:
         self.balls = raw["balls"]
         self.links = raw["links"]
         self.tarot = raw["tarot"]
+        self.members = {m["n"]: m for m in raw.get("members", [])}
+        self.headline = raw.get("headline")
+        self.question = raw.get("question")
+        self.answer = raw.get("answer")
+        self.talismans = set(raw.get("talismans", []))
 
     def analyze(self, rnd: int) -> dict:
         nums = self.draws[rnd]["nums"]
@@ -133,6 +138,105 @@ def tarot_block(d: Data) -> str:
             f'<p class="small">앱에서 내 카드를 직접 뽑을 수 있습니다.</p></div></section>')
 
 
+# ── 신령엔터 45인조 · 회차 부적 (2026-10-18) ─────────────────────────────
+STATUS_CLASS = {"컴백": "s-comeback", "연속 활동": "s-streak", "이번 주 무대": "s-stage", "공백기": "s-hiatus",
+                "대기 중": "s-wait"}
+
+
+def member_line(m: dict) -> str:
+    return {"컴백": f"{m['prev_gap']}회 만에 컴백", "연속 활동": f"{m['streak']}주 연속 무대",
+            "이번 주 무대": "이번 주 무대", "공백기": f"{m['gap']}주째 공백기"}.get(m["status"], f"{m['gap']}주째 대기")
+
+
+def member_card(d: Data, m: dict) -> str:
+    return (f'<a class="mcard {STATUS_CLASS[m["status"]]}" href="/member/{m["n"]}/">{ball(d, m["n"])}'
+            f'<span class="pos">{m["position"]}</span><span class="line">{e(member_line(m))}</span></a>')
+
+
+def ent_block(d: Data) -> str:
+    """홈 '이번 주 신령엔터' — 주간 헤드라인 + 이번 주 신령 문답."""
+    if not d.headline or not d.members:
+        return ""
+    h = d.headline
+    star = d.members[h["star"]]
+    q = d.question
+    qa = ""
+    if q:
+        cands = "".join(member_card(d, d.members[n]) for n in q["candidates"])
+        qa = (f'<div class="qa"><h3>{q["round"]}회 신령 문답 — 공백기 멤버 중 이번 주 컴백할 번호는?</h3>'
+              f'<div class="mgrid">{cands}</div><p class="small">스레드 @lottoshinryeong 에서 한 명 골라 댓글로 남겨주세요. '
+              f'토요일 밤 결과 공개. 재미로 보는 문답이며 예측이 아닙니다.</p></div>')
+    return (f'<section class="ent"><h2>이번 주 신령엔터</h2><a class="ent-star" href="/member/{star["n"]}/">'
+            f'{ball(d, star["n"], "big")}<span><b>{e(h["title"])}</b>'
+            f'<span class="small">{h["round"]}회 기준 · 포지션 {star["position"]} · 통산 {star["total"]}회 무대</span></span></a>'
+            f'{qa}<p class="more"><a href="/members/">45인조 전체 보기</a></p></section>')
+
+
+def talisman_block(d: Data, rnd: int, big: bool = False) -> str:
+    if rnd not in d.talismans:
+        return ""
+    cls = "talis big" if big else "talis"
+    return (f'<figure class="{cls}"><a href="/talisman/"><img src="/talisman/{rnd}.jpg" width="720" height="900" '
+            f'loading="lazy" alt="제{rnd}회 당첨번호로 그린 로또신령 부적"></a>'
+            f'<figcaption>제{rnd}회 부적 — 당첨번호 6개를 45자리 원 위에 붓선으로 이은 그림. 회차마다 한 장뿐입니다.</figcaption></figure>')
+
+
+def members_page(d: Data) -> str:
+    ms = sorted(d.members.values(), key=lambda m: m["rank"])
+    groups = [("이번 주 무대에 오른 멤버", [m for m in ms if m["status"] in ("컴백", "연속 활동", "이번 주 무대")]),
+              ("센터 라인업 · 최근 50회 출현 상위", [m for m in ms if m["position"] == "센터"]),
+              ("공백기 멤버", sorted((m for m in ms if m["status"] == "공백기"), key=lambda m: -m["gap"]))]
+    body = (f'<h1>신령엔터 45인조</h1><p>로또 번호 1~45를 한 그룹의 멤버로 봅니다. 공식 당첨번호(보너스 제외) 기록만으로 '
+            f'매주 상태가 바뀝니다 — 컴백, 연속 무대, 공백기. 포지션은 최근 50회 출현 순위입니다 '
+            f'(센터 1~5위 · 메인 6~15 · 서브 16~30 · 히든 31~45).</p>{ent_block(d)}')
+    for title, g in groups:
+        if g:
+            body += f'<section><h2>{title}</h2><div class="mgrid">{"".join(member_card(d, m) for m in g)}</div></section>'
+    body += (f'<section><h2>전체 멤버</h2><div class="mgrid">'
+             f'{"".join(member_card(d, d.members[n]) for n in range(1, 46))}</div></section>'
+             f'<p class="small">지난 기록을 이야기로 엮은 재미용 콘텐츠입니다. 매 회차 모든 번호의 당첨 확률은 같습니다.</p>')
+    return page(d, "/members/", f"신령엔터 45인조 — 로또 번호 1~45 멤버 프로필 | {SITE_NAME}",
+                f"로또 번호 45개의 이번 주 상태: {d.headline['title'] if d.headline else ''}. 컴백·연속 무대·공백기·센터 라인업.",
+                body)
+
+
+def member_page(d: Data, n: int) -> str:
+    m = d.members[n]
+    rounds = sorted(d.draws)
+    strip_rounds = [r for r in rounds if r > d.latest - len(m["strip"])]
+    strip = "".join(f'<span class="{"on" if v else ""}" title="{r}회"></span>' for r, v in zip(strip_rounds, m["strip"]))
+    buddy = m.get("buddy")
+    buddy_html = (f'<a class="buddy" href="/member/{buddy["n"]}/">{ball(d, buddy["n"], "sm")} 함께 {buddy["count"]}회</a>'
+                  if buddy else "-")
+    last5 = "".join(f'<li><a href="/round/{r}/">{r}회</a></li>' for r in m["last5"])
+    prev_ = f'<a href="/member/{n - 1}/">← {n - 1}번</a>' if n > 1 else "<span></span>"
+    next_ = f'<a href="/member/{n + 1}/">{n + 1}번 →</a>' if n < 45 else "<span></span>"
+    body = (f'<article class="profile {STATUS_CLASS[m["status"]]}">{ball(d, n, "huge")}<div><p class="small">신령엔터 45인조</p>'
+            f'<h1>{n}번 멤버</h1><p class="chip">{m["position"]} · {e(member_line(m))}</p></div></article>'
+            f'<dl class="facts"><div><dt>통산 무대</dt><dd>{m["total"]}회</dd></div>'
+            f'<div><dt>최근 50회</dt><dd>{m["recent"]}회 · {m["rank"]}위</dd></div>'
+            f'<div><dt>현재 공백</dt><dd>{m["gap"]}회</dd></div><div><dt>최장 공백</dt><dd>{m["max_gap"]}회</dd></div>'
+            f'<div class="wide"><dt>최애 듀오(함께 나온 횟수 최다)</dt><dd>{buddy_html}</dd></div></dl>'
+            f'<section><h2>최근 {len(m["strip"])}회 무대 기록</h2><div class="strip" aria-label="최근 회차 출현 기록">{strip}</div>'
+            f'<p class="small">왼쪽이 오래된 회차, 오른쪽이 {d.latest}회. 금색 칸이 출현한 회차입니다.</p></section>'
+            f'<section><h2>최근 무대</h2><ul class="chips">{last5}</ul></section>'
+            f'<p class="small">지난 기록을 이야기로 엮은 재미용 콘텐츠입니다. 매 회차 모든 번호의 당첨 확률은 같습니다.</p>'
+            f'{install_block(d)}<nav class="pager" aria-label="멤버 이동">{prev_}<a href="/members/">45인조 전체</a>{next_}</nav>')
+    return page(d, f"/member/{n}/", f"로또 {n}번 — {member_line(m)} | 신령엔터 45인조 | {SITE_NAME}",
+                f"로또 번호 {n}번 기록: 통산 {m['total']}회 출현, 최근 50회 {m['recent']}회, 현재 공백 {m['gap']}회, 최장 공백 {m['max_gap']}회.",
+                body)
+
+
+def talisman_page(d: Data) -> str:
+    items = "".join(f'<a href="/round/{r}/" class="tcell"><img src="/talisman/{r}.jpg" width="720" height="900" loading="lazy" '
+                    f'alt="제{r}회 부적"><span>제{r}회</span></a>' for r in sorted(d.talismans, reverse=True))
+    body = (f'<h1>회차 부적 컬렉션</h1><p>매주 당첨번호 6개를 45자리 원 위에 붓선으로 이어 그린 부적입니다. '
+            f'같은 번호가 다시 나오지 않는 한 같은 그림도 다시 나오지 않습니다. 인스타그램 @lottoshinryeong 에서 매주 첫 장으로 올라갑니다.</p>'
+            f'<div class="tgrid">{items}</div>')
+    return page(d, "/talisman/", f"회차 부적 컬렉션 — 당첨번호로 그린 부적 | {SITE_NAME}",
+                "로또 회차마다 당첨번호로 그리는 한 장뿐인 부적 그림 모음.", body)
+
+
 # ── 페이지 틀 ──────────────────────────────────────────────────────────
 def sidebar(d: Data, path: str) -> str:
     """모든 페이지 왼쪽 '로또신령 전체 목록'(2026-10-18 사용자 지시) — PC는 항상 보이고, 휴대폰은 [전체 메뉴]로 펼침."""
@@ -158,7 +262,8 @@ def sidebar(d: Data, path: str) -> str:
             f'</aside>')
 
 
-NAV = [("/", "최신 회차"), ("/rounds/", "전체 회차"), ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"),
+NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
+       ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"),
        ("/about/", "앱 소개")]
 
 
@@ -197,7 +302,7 @@ def round_page(d: Data, rnd: int) -> str:
     next_ = f'<a href="/round/{rnd + 1}/">{rnd + 1}회 →</a>' if rnd + 1 in d.draws else "<span></span>"
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}</article>'
-            f'<section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>'
+            f'<section><h2>번호 구성</h2>{analysis_block(d, rnd)}</section>{talisman_block(d, rnd)}'
             f'{our_block(d, rnd)}{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
             f'<a href="/rounds/">전체 회차</a>{next_}</nav>')
     title = f"제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']} | {SITE_NAME}"
@@ -213,7 +318,7 @@ def index_page(d: Data) -> str:
     body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
             f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}'
             f'<p class="more"><a href="/round/{rnd}/">{rnd}회 자세히 보기</a></p></article>'
-            f'{tarot_block(d)}{our_block(d)}'
+            f'{ent_block(d)}{talisman_block(d, rnd, True)}{tarot_block(d)}{our_block(d)}'
             f'<section><h2>지난 회차</h2><ol class="recent">{recent}</ol>'
             f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section>{install_block(d)}')
     nums = ", ".join(map(str, dr["nums"]))
@@ -304,6 +409,10 @@ def sitemap(d: Data) -> str:
     today = d.raw["generated_at"][:10]
     urls = [("/", today, "1.0"), ("/rounds/", today, "0.8"), ("/stats/", today, "0.8"),
             ("/tools/prize/", today, "0.6"), ("/about/", today, "0.5")]
+    if d.members:
+        urls += [("/members/", today, "0.9")] + [(f"/member/{n}/", today, "0.6") for n in range(1, 46)]
+    if d.talismans:
+        urls += [("/talisman/", today, "0.7")]
     urls += [(f"/round/{r}/", d.draws[r]["date"], "0.7" if r > d.latest - 10 else "0.4") for r in sorted(d.draws, reverse=True)]
     body = "".join(f"<url><loc>{SITE_URL}{p}</loc><lastmod>{m}</lastmod><priority>{pr}</priority></url>"
                    for p, m, pr in urls)
@@ -356,6 +465,17 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
     w("404.html", notfound_page(d))
+    if d.members:
+        w("members/index.html", members_page(d))
+        for n in range(1, 46):
+            w(f"member/{n}/index.html", member_page(d, n))
+    tal_src = assets / "site_data" / "talisman"
+    if d.talismans and tal_src.exists():
+        (out / "talisman").mkdir(exist_ok=True)
+        for r in d.talismans:
+            if (tal_src / f"{r}.jpg").exists():
+                shutil.copy(tal_src / f"{r}.jpg", out / "talisman" / f"{r}.jpg")
+        w("talisman/index.html", talisman_page(d))
     for r in d.draws:
         w(f"round/{r}/index.html", round_page(d, r))
     w("sitemap.xml", sitemap(d))
