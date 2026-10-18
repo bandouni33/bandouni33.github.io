@@ -300,7 +300,10 @@ def sidebar(d: Data, path: str) -> str:
             f'<div class="grp"><h3>앱 설치</h3><ul>{link(d.links["play"], "구글 플레이에서 설치", True)}'
             f'<li class="note">아이폰: 앱스토어에서 \'로또신령\' 검색</li></ul></div>'
             f'<div class="grp"><h3>사용설명서</h3><ul>{manual}</ul></div>'
-            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></div></details></div></header>')
+            f'<div class="grp"><h3>공식 채널</h3><ul>{chans}</ul></div></div></details></div>'
+            # 휴대폰 메뉴 줄: 지금 페이지 메뉴가 화면 안에 보이게
+            f'<script>var c=document.querySelector(".topnav [aria-current]");if(c)c.scrollIntoView({{inline:"center",block:"nearest"}})</script>'
+            f'</header>')
 
 
 NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
@@ -372,7 +375,7 @@ def index_page(d: Data) -> str:
 
 
 def rounds_page(d: Data) -> str:
-    rows = "".join(f'<tr><th scope="row"><a href="/round/{r}/">{r}회</a></th><td>{d.draws[r]["date"]}</td>'
+    rows = "".join(f'<tr><th scope="row"><a href="/round/{r}/">{r}회</a></th><td>{d.draws[r]["date"][2:].replace("-", ".")}</td>'
                    f'<td>{" ".join(map(str, d.draws[r]["nums"]))} <span class="b">+{d.draws[r]["bonus"]}</span></td></tr>'
                    for r in sorted(d.draws, reverse=True))
     body = (f'<h1>로또 회차별 당첨번호</h1><p>1회부터 {d.latest}회까지 모든 당첨번호입니다. 회차를 누르면 번호 구성을 볼 수 있습니다.</p>'
