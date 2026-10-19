@@ -530,6 +530,9 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     if icon.exists():
         Image.open(icon).convert("RGBA").resize((192, 192), Image.LANCZOS).save(out / "img/icon.png", optimize=True)
     shutil.copy(HERE / "og.png", out / "img/og.png")
+    # 앱(로또신령 자동조합) 조합 생성 연출 그림 — 앱 저장소 scripts/make_spirit2_gen_anim.py 로 구운 파일(2026-10-20)
+    if (HERE / "fx").is_dir():
+        shutil.copytree(HERE / "fx", out / "fx")
     tsrc = assets / d.tarot["image"]
     if tsrc.exists():
         (out / Path(d.tarot["image"]).parent).mkdir(parents=True, exist_ok=True)
