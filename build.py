@@ -17,7 +17,7 @@ from pathlib import Path
 from xml.sax.saxutils import escape as xesc
 
 HERE = Path(__file__).resolve().parent
-SITE_URL = "https://bandouni33.github.io"
+SITE_URL = "https://lottoshinryeong.com"  # 2026-10-21 자체 도메인(가비아, 3년·만기 2029-10-21)
 SITE_NAME = "로또신령"
 import hashlib as _hl
 

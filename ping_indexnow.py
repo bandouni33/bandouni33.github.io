@@ -6,7 +6,7 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SITE = "https://bandouni33.github.io"
+SITE = "https://lottoshinryeong.com"
 KEY = (HERE / "indexnow_key.txt").read_text().strip()
 ENDPOINTS = ["https://searchadvisor.naver.com/indexnow", "https://api.indexnow.org/indexnow"]
 
@@ -14,7 +14,7 @@ ENDPOINTS = ["https://searchadvisor.naver.com/indexnow", "https://api.indexnow.o
 def main(data_path: str) -> None:
     latest = json.loads(Path(data_path).read_text(encoding="utf-8"))["latest_round"]
     urls = [f"{SITE}/", f"{SITE}/round/{latest}/", f"{SITE}/rounds/", f"{SITE}/stats/"]
-    body = json.dumps({"host": "bandouni33.github.io", "key": KEY, "keyLocation": f"{SITE}/{KEY}.txt",
+    body = json.dumps({"host": "lottoshinryeong.com", "key": KEY, "keyLocation": f"{SITE}/{KEY}.txt",
                        "urlList": urls}).encode()
     for ep in ENDPOINTS:
         try:
