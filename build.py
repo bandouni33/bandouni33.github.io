@@ -379,10 +379,29 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
-<body><div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{_old_install_block(d)}</div>
+<body>{IN_APP}<div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{_old_install_block(d)}</div>
 <main>{body}</main>
 <footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
 <p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
+
+
+# 앱(설치형) 안에서 연 홈페이지 — 2026-10-22 사용자 지시(앱에서 홈페이지를 누르면 브라우저 앱이 따로 떠 '앱 2개').
+# 앱은 홈페이지를 같은 화면에서 열고 돌아올 주소를 app_ret 로 준다. 여기서는
+#  ① 앱의 '불러오는 중' 화면을 바로 내리게 알리고(pageReady — 앱이 Streamlit 화면에서 쓰는 것과 같은 신호)
+#  ② 맨 위에 '앱으로 돌아가기' 띠를 보인다(아이폰은 뒤로가기 버튼이 없다). 홈페이지 안을 옮겨 다녀도
+#     처음 들어온 지점까지 한 번에 돌아가고, 기록이 없으면 받은 주소로 이동한다(주소는 앱 서버만 허용).
+IN_APP = r"""<div id="lnapp" class="lnapp" hidden><button type="button" id="lnback">← 앱으로 돌아가기</button></div>
+<script>(function(){var RN=window.ReactNativeWebView,S;try{S=window.sessionStorage;}catch(e){}
+var q=new URLSearchParams(location.search),ret=q.get("app_ret");
+if(ret&&/^https:\/\/lotto-shinryeong\.streamlit\.app\//.test(ret)&&S){S.setItem("lnRet",ret);S.setItem("lnDepth","0");S.setItem("lnMap","{}");}
+var R=S&&S.getItem("lnRet");if(!RN&&!R)return;
+try{RN&&RN.postMessage(JSON.stringify({type:"pageReady"}));}catch(e){}
+var d=0;if(S&&R){var nav=((performance.getEntriesByType&&performance.getEntriesByType("navigation")[0])||{}).type,
+m=JSON.parse(S.getItem("lnMap")||"{}"),k=location.pathname+location.search;
+d=(nav!=="navigate"&&m[k]!=null)?m[k]:(+S.getItem("lnDepth")||0)+1;S.setItem("lnDepth",d);m[k]=d;S.setItem("lnMap",JSON.stringify(m));}
+var bar=document.getElementById("lnapp");bar.hidden=false;document.documentElement.classList.add("in-app");
+document.getElementById("lnback").onclick=function(){if(d>0&&history.length>d){history.go(-d);if(R)setTimeout(function(){location.href=R;},1500);}
+else if(R){location.href=R;}else{history.back();}};})();</script>"""
 
 
 # ── 페이지들 ───────────────────────────────────────────────────────────

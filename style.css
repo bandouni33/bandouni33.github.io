@@ -252,3 +252,8 @@ main > h1:first-child{margin-top:22px}
 .mn-card h2{margin:6px 0 4px}.mn-card h3{margin:14px 0 4px;font-size:15px;color:var(--gold)}
 .mn-card ol,.mn-card ul{margin:0;padding-left:22px}.mn-lead{margin:0;color:var(--muted)}
 .mn-badge{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--gold);color:var(--gold);font-size:12.5px}
+
+/* 앱 안에서 연 홈페이지 — 맨 위 '앱으로 돌아가기' 띠(2026-10-22) */
+.lnapp{position:sticky;top:0;z-index:50;background:#e8c770;text-align:center}
+.lnapp button{width:100%;padding:11px 12px;border:0;background:transparent;color:#241c08;font:700 15px var(--sans);cursor:pointer}
+.in-app .sticky{top:44px}
