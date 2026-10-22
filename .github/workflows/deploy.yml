@@ -10,6 +10,9 @@ on:
     - cron: "30 12 * * 6"
     - cron: "20 13,14 * * 6"
     - cron: "5 0 * * *"
+    # 2026-10-22(사용자 지시 "앱·홈페이지 항상 일치"): 매시간 확인 — 앱 저장소 site_data 가 지난 1시간 안에 바뀐 경우만 새로 만든다
+    # (바뀐 게 없으면 만들기·배포·검색엔진 알림을 하지 않는다).
+    - cron: "17 * * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -22,7 +25,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      go: ${{ steps.c.outputs.go }}
+    steps:
+      - id: c
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCHED: ${{ github.event.schedule }}
+        run: |
+          if [ "$SCHED" != "17 * * * *" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          last=$(gh api "repos/bandouni33/lotto-shinryeong/commits?path=site_data&per_page=1" -q '.[0].commit.committer.date' || echo "")
+          if [ -z "$last" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          age=$(( $(date +%s) - $(date -d "$last" +%s) ))
+          echo "앱 데이터 마지막 변경: $last (${age}초 전)"
+          if [ "$age" -le 3900 ]; then echo "go=true" >> "$GITHUB_OUTPUT"; else echo "go=false" >> "$GITHUB_OUTPUT"; fi
+
   build:
+    needs: check
+    if: needs.check.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
