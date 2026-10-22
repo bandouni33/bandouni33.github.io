@@ -46,6 +46,12 @@ class Data:
         self.answer = raw.get("answer")
         self.talismans = set(raw.get("talismans", []))
         self.results = {int(k): v for k, v in raw.get("results", {}).items()}
+        # 앱 사용설명서(앱 저장소 manual_ui 그대로) — 2026-10-22 사용자 지시: 앱·홈페이지 설명서 항상 일치
+        self.manual = raw.get("manual") or None
+
+    @property
+    def manual_url(self) -> str:
+        return "/manual/" if self.manual else self.links["manual"]
 
     def analyze(self, rnd: int) -> dict:
         nums = self.draws[rnd]["nums"]
@@ -103,7 +109,7 @@ def app_bar(d: Data) -> str:
             f'<p><b>로또신령 앱</b><span class="ab-long"> — 필터로 거른 자동조합·번개조합·타로점까지.</span>'
             f'<span class="ab-pt"> <span class="ab-first">첫 가입 </span>500P 무료 체험</span></p>'
             f'<a class="btn primary" href="{e(d.links["play"])}" rel="noopener">구글 플레이에서 설치</a>'
-            f'<a class="btn ab-manual" href="{e(d.links["manual"])}" rel="noopener">사용설명서</a></div></div>')
+            f'<a class="btn ab-manual" href="{e(d.manual_url)}" rel="noopener">사용설명서</a></div></div>')
 
 
 def install_block(d: Data) -> str:
@@ -116,7 +122,7 @@ def _old_install_block(d: Data) -> str:
             f'<p>필터로 거른 자동조합, 번개조합, 타로점, 받은 조합 저장까지 앱에서 이어집니다. '
             f'첫 가입 시 500P로 번호 조합을 무료로 체험할 수 있습니다.</p>'
             f'<div class="btns"><a class="btn primary" href="{e(d.links["play"])}" rel="noopener">구글 플레이에서 설치</a>'
-            f'<a class="btn" href="{e(d.links["manual"])}" rel="noopener">사용설명서 보기</a></div>'
+            f'<a class="btn" href="{e(d.manual_url)}" rel="noopener">사용설명서 보기</a></div>'
             f'<p class="small">아이폰은 앱스토어에서 \'로또신령\'을 검색하세요.</p></div></section>')
 
 
@@ -307,7 +313,8 @@ def sidebar(d: Data, path: str) -> str:
     site = "".join(link(h, lab) for h, lab in NAV)
     top = "".join(f'<a href="{h}"{" aria-current=page" if h == path else ""}>{lab}</a>' for h, lab in NAV)
     recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
-    manual = "".join(link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
+    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + "".join(
+        link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
     return (f'<header class="top"><div class="bar">'
             f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="32" height="32">로또신령</a>'
@@ -333,7 +340,8 @@ def side(d: Data, path: str) -> str:
 
     site = "".join(link(h, lab) for h, lab in NAV)
     recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
-    manual = "".join(link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
+    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + "".join(
+        link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
     return (f'<aside class="side" aria-label="로또신령 전체 목록">'
             f'<a class="brand" href="/"><img src="/img/icon.png" alt="" width="34" height="34">로또신령</a>'
@@ -470,17 +478,44 @@ document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{amt.value=f
 
 
 def about_page(d: Data) -> str:
+    if d.manual:   # 기능 목록도 앱 사용설명서 항목에서 만든다(문구 단일 출처)
+        secs = d.manual["sections"]
+        items = "".join(f'<li>{e(s["title"])}: {e(s["summary"])}</li>' for s in secs)
+        names = ", ".join(s["title"] for s in secs)
+        more = '<p><a class="btn" href="/manual/">사용설명서 전체 보기</a></p>'
+    else:
+        items = ("<li>타로점: 지금 마음을 카드 한 장으로 짚어보기</li>"
+                 "<li>자동조합: 다음 회차 배포용 조합에서 내 몫을 자동으로 배정받기</li>"
+                 "<li>번개조합: 고정수·삭제수·행운수를 정해 한 번에 여러 게임 뽑기</li>"
+                 "<li>구매복권 검증: 산 번호를 QR스캔이나 직접입력으로 넣고, 반대 조건의 조합 만들기</li>"
+                 "<li>고급필터·통계센터: 필터 규칙과 번호 흐름 보기</li>")
+        names = "타로점, 자동조합, 번개조합, 구매복권 검증, 고급필터, 통계센터"
+        more = ""
     body = f"""<h1>로또신령 앱 소개</h1>
 <p>로또신령은 지난 당첨번호를 바탕으로 번호 조합을 거르고, 매주 신령 타로로 한 주를 점쳐보는 앱입니다.</p>
-<section><h2>앱에서 할 수 있는 것</h2><ul>
-<li>타로점: 지금 마음을 카드 한 장으로 짚어보기</li>
-<li>자동조합: 다음 회차 배포용 조합에서 내 몫을 자동으로 배정받기</li>
-<li>번개조합: 고정수·삭제수·행운수를 정해 한 번에 여러 게임 뽑기</li>
-<li>구매복권 검증: 산 번호를 QR스캔이나 직접입력으로 넣고, 반대 조건의 조합 만들기</li>
-<li>고급필터·통계센터: 필터 규칙과 번호 흐름 보기</li></ul></section>
+<section><h2>앱에서 할 수 있는 것</h2><ul>{items}</ul>{more}</section>
 {our_block(d)}{install_block(d)}"""
-    return page(d, "/about/", f"로또신령 앱 소개 | {SITE_NAME}",
-                "로또신령 앱 기능 소개: 타로점, 자동조합, 번개조합, 구매복권 검증, 고급필터, 통계센터.", body)
+    return page(d, "/about/", f"로또신령 앱 소개 | {SITE_NAME}", f"로또신령 앱 기능 소개: {names}.", body)
+
+
+def manual_page(d: Data) -> str:
+    """앱 사용설명서 그대로(앱 저장소 manual_ui → site_data/data.json 'manual'). 문구를 여기서 고치지 않는다."""
+    m = d.manual
+    toc = "".join(f'<li><a href="#m{e(s["no"])}"><b>{e(s["title"])}</b></a> <span class="small">{e(s["summary"])}</span></li>'
+                  for s in m["sections"])
+    cards = ""
+    for s in m["sections"]:
+        steps = "".join(f"<li>{e(t)}</li>" for t in s["steps"])
+        notes = "".join(f"<li>{e(t)}</li>" for t in s["notes"])
+        cards += (f'<section class="mn-card" id="m{e(s["no"])}"><span class="mn-badge">{e(s["badge"])}</span>'
+                  f'<h2>{e(s["icon"])} {e(s["title"])}</h2><p class="mn-lead">{e(s["summary"])}</p>'
+                  f'<h3>이렇게 사용하세요</h3><ol>{steps}</ol>'
+                  f'<h3>적립금</h3><p>{e(s["price"])}</p>'
+                  f'<h3>알아두세요</h3><ul>{notes}</ul></section>')
+    body = (f'<h1>로또신령 사용설명서</h1><p class="small">{e(m["privacy"])}</p>'
+            f'<ol class="mn-toc">{toc}</ol>{cards}<p class="small">{e(m["footer"])}</p>{install_block(d)}')
+    names = ", ".join(s["title"] for s in m["sections"])
+    return page(d, "/manual/", f"사용설명서 | {SITE_NAME}", f"로또신령 앱 사용설명서: {names} 이용 방법.", body)
 
 
 def notfound_page(d: Data) -> str:
@@ -495,6 +530,8 @@ def sitemap(d: Data) -> str:
     today = d.raw["generated_at"][:10]
     urls = [("/", today, "1.0"), ("/rounds/", today, "0.8"), ("/stats/", today, "0.8"),
             ("/tools/prize/", today, "0.6"), ("/about/", today, "0.5")]
+    if d.manual:
+        urls += [("/manual/", today, "0.7")]
     if d.members:
         urls += [("/members/", today, "0.9")] + [(f"/member/{n}/", today, "0.6") for n in range(1, 46)]
     if d.talismans:
@@ -553,6 +590,8 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     w("stats/index.html", stats_page(d))
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
+    if d.manual:
+        w("manual/index.html", manual_page(d))
     w("404.html", notfound_page(d))
     if d.members:
         w("members/index.html", members_page(d))
