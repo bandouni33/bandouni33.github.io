@@ -354,7 +354,7 @@ def side(d: Data, path: str) -> str:
 
 
 NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
-       ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"),
+       ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"), ("/guide/", "판매시간·수령"),
        ("/about/", "앱 소개")]
 
 
@@ -417,8 +417,11 @@ def round_page(d: Data, rnd: int) -> str:
             f'{talisman_block(d, rnd)}</div></div>'
             f'{install_block(d)}<nav class="pager" aria-label="회차 이동">{prev_}'
             f'<a href="/rounds/">전체 회차</a>{next_}</nav>')
-    title = f"제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']} | {SITE_NAME}"
-    desc = f"{date_kr(dr['date'])} 추첨 제{rnd}회 로또 6/45 당첨번호는 {nums}, 보너스 {dr['bonus']}입니다. 홀짝·합계·번호대 분석."
+    # 2026-10-22 검색 키워드 재정비(네이버 검색량: 로또당첨번호·복권당첨번호·로또1등당첨금 등)
+    first = _first_prize(d, rnd)
+    title = f"제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']}" + (f" · 1등 당첨금 {first}" if first else "") + f" | {SITE_NAME}"
+    desc = (f"{date_kr(dr['date'])} 추첨 제{rnd}회 로또 복권 당첨번호는 {nums}, 보너스 {dr['bonus']}입니다."
+            + (f" 1등 당첨금 1명당 {first}, 1등 당첨 판매점(명당)과" if first else "") + " 홀짝·합계·번호대 분석.")
     return page(d, f"/round/{rnd}/", title, desc, body)
 
 
@@ -435,8 +438,11 @@ def index_page(d: Data) -> str:
             f'<section><h2>지난 회차</h2><ol class="recent">{recent}</ol>'
             f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section></div></div>{install_block(d)}')
     nums = ", ".join(map(str, dr["nums"]))
-    return page(d, "/", f"로또 당첨번호 제{rnd}회 | {SITE_NAME}",
-                f"최신 제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']}. 회차별 당첨번호, 번호 통계, 실수령액 계산, 이번 주 신령 타로.",
+    first = _first_prize(d, rnd)
+    return page(d, "/", f"로또 당첨번호 제{rnd}회 조회" + (f" · 1등 당첨금 {first}" if first else "") + f" | {SITE_NAME}",
+                f"최신 제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']}."
+                + (f" 1등 당첨금 1명당 {first}." if first else "")
+                + " 회차별 복권 당첨번호 조회, 1등 명당, 번호 통계, 당첨금 실수령액 계산, 로또 판매시간 안내.",
                 body)
 
 
@@ -447,7 +453,7 @@ def rounds_page(d: Data) -> str:
     body = (f'<h1>로또 회차별 당첨번호</h1><p>1회부터 {d.latest}회까지 모든 당첨번호입니다. 회차를 누르면 번호 구성을 볼 수 있습니다.</p>'
             f'<table class="grid list"><thead><tr><th scope="col">회차</th><th scope="col">추첨일</th>'
             f'<th scope="col">당첨번호 + 보너스</th></tr></thead><tbody>{rows}</tbody></table>')
-    return page(d, "/rounds/", f"로또 회차별 당첨번호 전체(1~{d.latest}회) | {SITE_NAME}",
+    return page(d, "/rounds/", f"로또 회차별 당첨번호 전체 조회(1~{d.latest}회) · 복권 당첨번호 | {SITE_NAME}",
                 f"로또 6/45 1회부터 {d.latest}회까지 회차별 당첨번호와 보너스 번호 전체 목록.", body)
 
 
@@ -483,7 +489,8 @@ def prize_page(d: Data) -> str:
 <section><h2>계산 기준</h2><ul>
 <li>200만원 이하: 세금 없음</li><li>200만원 초과: 3억원까지 22%(소득세 20% + 지방소득세 2%)</li>
 <li>3억원 초과분: 33%(소득세 30% + 지방소득세 3%)</li><li>복권 구입비 1,000원은 필요경비로 빼고 계산</li></ul>
-<p class="small">예상치입니다. 정확한 세액은 지급처나 국세청에서 확인하세요.</p></section>
+<p class="small">예상치입니다. 정확한 세액은 지급처나 국세청에서 확인하세요.</p>
+<p><a href="/guide/">당첨금 받는 곳·지급기한, 로또 판매시간 보기 →</a></p></section>
 <script>
 const f=n=>n.toLocaleString('ko-KR');
 function calc(v){v=Math.max(0,Math.floor(v||0));if(!v){res.textContent='';return}
@@ -492,8 +499,48 @@ res.innerHTML='세금 <b>'+f(tax)+'원</b><br>예상 실수령액 <b class="big"
 amt.addEventListener('input',()=>{const v=+amt.value.replace(/[^0-9]/g,'');amt.value=v?f(v):'';calc(v)});
 document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{amt.value=f(+b.dataset.v);calc(+b.dataset.v)});
 </script>"""
-    return page(d, "/tools/prize/", f"로또 당첨금 실수령액 계산기(세금 22%·33%) | {SITE_NAME}",
+    return page(d, "/tools/prize/", f"로또 1등 당첨금 실수령액 계산기(세금 22%·33%) | {SITE_NAME}",
                 "로또 1등·2등·3등 당첨금의 세금과 실수령액을 바로 계산합니다. 200만원 이하 비과세, 3억 초과분 33%.", body)
+
+
+def _first_prize(d: Data, rnd: int) -> str:
+    res = d.results.get(rnd)
+    if not res or not res.get("ranks"):
+        return ""
+    return eok(res["ranks"][0]["amount"])
+
+
+# 2026-10-22(사용자 지시 — 검색 키워드 재정비): 네이버 검색량 1위권 '로또판매시간'(월 4.8만), '로또당첨금'·'로또1등당첨금'.
+# 내용은 동행복권 공식 안내(dhlottery.co.kr/lt645/intro, 2026-10-22 확인) 기준. 바뀌면 이 표만 고친다.
+GUIDE_FAQ = [
+    ("로또 판매시간은 언제인가요?",
+     "일요일~금요일은 오전 6시부터 밤 12시(24시)까지, 추첨일인 토요일은 오전 6시부터 저녁 8시까지 판매합니다. "
+     "토요일 저녁 8시에 판매가 마감되고 다음 날 오전 6시에 다시 시작합니다. 판매점마다 영업시간은 다를 수 있습니다."),
+    ("로또 추첨은 몇 시에 하나요?",
+     "매주 토요일 저녁 8시 35분경 추첨합니다(방송 사정에 따라 바뀔 수 있습니다). 결과는 이 홈페이지 최신 회차에서 바로 볼 수 있습니다."),
+    ("로또 당첨금은 어디서 받나요?",
+     "1등은 NH농협은행 본점, 2등·3등은 전국 NH농협은행 지점, 4등(5만원)·5등(5천원)은 복권 판매점에서 받습니다."),
+    ("당첨금 지급기한은 언제까지인가요?",
+     "복권 앞면에 적힌 지급기한까지 받아야 합니다. 기한이 지나면 당첨금은 복권기금으로 넘어갑니다."),
+    ("로또 1등 당첨금 세금은 얼마인가요?",
+     "200만원 이하는 세금이 없고, 200만원 초과분은 3억원까지 22%, 3억원 초과분은 33%입니다. 실수령액은 실수령액 계산기에서 바로 계산됩니다."),
+    ("한 번에 얼마까지 살 수 있나요?",
+     "판매점은 1인 1회 10만원까지, 인터넷(동행복권)은 1인 1회차 5천원까지 살 수 있습니다. 만 19세 미만은 살 수 없습니다."),
+]
+
+
+def guide_page(d: Data) -> str:
+    qa = "".join(f'<section><h2>{e(q)}</h2><p>{e(a)}</p></section>' for q, a in GUIDE_FAQ)
+    ld = json.dumps({"@context": "https://schema.org", "@type": "FAQPage",
+                     "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}}
+                                    for q, a in GUIDE_FAQ]}, ensure_ascii=False)
+    body = (f'<h1>로또 판매시간·추첨시간·당첨금 수령 안내</h1>'
+            f'<p>로또 6/45를 살 수 있는 시간, 추첨 시간, 당첨금 받는 곳과 세금을 한 곳에 모았습니다.</p>{qa}'
+            f'<p><a class="btn" href="/tools/prize/">당첨금 실수령액 계산하기</a> <a class="btn" href="/">최신 회차 당첨번호</a></p>'
+            f'<p class="small">출처: 동행복권 로또6/45 안내. 실제 운영은 동행복권 공지를 따릅니다.</p>{install_block(d)}')
+    return page(d, "/guide/", f"로또 판매시간·추첨시간·당첨금 수령 방법(토요일 판매 마감 8시) | {SITE_NAME}",
+                "로또 판매시간(일~금 06~24시, 토 06~20시), 추첨시간(토 20:35), 1등 당첨금 수령처·지급기한·세금 정리.",
+                body, extra_head=f'<script type="application/ld+json">{ld}</script>')
 
 
 def about_page(d: Data) -> str:
@@ -548,7 +595,7 @@ def notfound_page(d: Data) -> str:
 def sitemap(d: Data) -> str:
     today = d.raw["generated_at"][:10]
     urls = [("/", today, "1.0"), ("/rounds/", today, "0.8"), ("/stats/", today, "0.8"),
-            ("/tools/prize/", today, "0.6"), ("/about/", today, "0.5")]
+            ("/tools/prize/", today, "0.6"), ("/guide/", today, "0.7"), ("/about/", today, "0.5")]
     if d.manual:
         urls += [("/manual/", today, "0.7")]
     if d.members:
@@ -609,6 +656,7 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     w("stats/index.html", stats_page(d))
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
+    w("guide/index.html", guide_page(d))
     if d.manual:
         w("manual/index.html", manual_page(d))
     w("404.html", notfound_page(d))
