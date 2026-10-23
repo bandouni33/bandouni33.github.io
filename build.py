@@ -377,7 +377,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="alternate" type="application/rss+xml" title="{SITE_NAME} 회차 소식" href="{SITE_URL}/rss.xml">
 <link rel="icon" href="/img/icon.png"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
 <body>{IN_APP}<div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{_old_install_block(d)}</div>
 <main>{body}</main>
@@ -395,7 +395,8 @@ IN_APP = r"""<div id="lnapp" class="lnapp" hidden><button type="button" id="lnba
 var q=new URLSearchParams(location.search),ret=q.get("app_ret");
 if(ret&&/^https:\/\/lotto-shinryeong\.streamlit\.app\//.test(ret)&&S){S.setItem("lnRet",ret);S.setItem("lnDepth","0");S.setItem("lnMap","{}");}
 var R=S&&S.getItem("lnRet");if(!RN&&!R)return;
-try{RN&&RN.postMessage(JSON.stringify({type:"pageReady"}));}catch(e){}
+function rdy(){try{RN&&RN.postMessage(JSON.stringify({type:"pageReady"}));}catch(e){}}
+rdy();document.addEventListener("DOMContentLoaded",rdy);addEventListener("load",rdy);setTimeout(rdy,300);setTimeout(rdy,1200);
 var d=0;if(S&&R){var nav=((performance.getEntriesByType&&performance.getEntriesByType("navigation")[0])||{}).type,
 m=JSON.parse(S.getItem("lnMap")||"{}"),k=location.pathname+location.search;
 d=(nav!=="navigate"&&m[k]!=null)?m[k]:(+S.getItem("lnDepth")||0)+1;S.setItem("lnDepth",d);m[k]=d;S.setItem("lnMap",JSON.stringify(m));}
