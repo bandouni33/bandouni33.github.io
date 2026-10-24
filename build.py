@@ -58,9 +58,20 @@ class Data:
         odd = sum(n % 2 for n in nums)
         low = sum(1 for n in nums if n <= 22)
         runs = sum(1 for a, b in zip(nums, nums[1:]) if b == a + 1)
+        # 2026-10-24(사용자 지시 — SNS 카드와 통일): 연속번호는 묶음 길이로(22·23·24 = 3연, 27·28 = 2연)
+        run_lens, cur = [], 1
+        for x, y in zip(nums, nums[1:]):
+            if y == x + 1:
+                cur += 1
+            else:
+                if cur > 1:
+                    run_lens.append(cur)
+                cur = 1
+        if cur > 1:
+            run_lens.append(cur)
         bands = [sum(1 for n in nums if lo <= n <= hi) for lo, hi in ((1, 10), (11, 20), (21, 30), (31, 40), (41, 45))]
         return {"odd": odd, "even": 6 - odd, "low": low, "high": 6 - low, "sum": sum(nums), "runs": runs,
-                "bands": bands}
+                "run_lens": sorted(run_lens), "bands": bands}
 
     def frequency(self, upto: int, window: int | None = None) -> dict[int, int]:
         rs = [r for r in self.draws if r <= upto and (window is None or r > upto - window)]
@@ -150,7 +161,7 @@ def analysis_block(d: Data, rnd: int) -> str:
     return (f'<dl class="facts"><div><dt>홀짝</dt><dd>{a["odd"]} : {a["even"]}</dd></div>'
             f'<div><dt>낮은 수(1~22) : 높은 수</dt><dd>{a["low"]} : {a["high"]}</dd></div>'
             f'<div><dt>번호 합계</dt><dd>{a["sum"]}</dd></div>'
-            f'<div><dt>연속 번호</dt><dd>{a["runs"]}쌍</dd></div>'
+            f'<div><dt>연속 번호</dt><dd>{" · ".join(f"{k}연" for k in a["run_lens"]) or "없음"}</dd></div>'
             f'<div class="wide"><dt>번호대 분포</dt><dd>{bands}</dd></div></dl>')
 
 
