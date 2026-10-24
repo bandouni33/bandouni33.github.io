@@ -637,6 +637,8 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     # 앱(로또신령 자동조합) 조합 생성 연출 그림 — 앱 저장소 scripts/make_spirit2_gen_anim.py 로 구운 파일(2026-10-20)
     if (HERE / "fx").is_dir():
         shutil.copytree(HERE / "fx", out / "fx")
+    if (HERE / "media").is_dir():   # 2026-10-24 홍보 영상(인스타·스레드 영상 게시는 공개 주소가 필요)
+        shutil.copytree(HERE / "media", out / "media")
     tsrc = assets / d.tarot["image"]
     if tsrc.exists():
         (out / Path(d.tarot["image"]).parent).mkdir(parents=True, exist_ok=True)
