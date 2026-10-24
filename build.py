@@ -161,7 +161,7 @@ def analysis_block(d: Data, rnd: int) -> str:
     return (f'<dl class="facts"><div><dt>홀짝</dt><dd>{a["odd"]} : {a["even"]}</dd></div>'
             f'<div><dt>낮은 수(1~22) : 높은 수</dt><dd>{a["low"]} : {a["high"]}</dd></div>'
             f'<div><dt>번호 합계</dt><dd>{a["sum"]}</dd></div>'
-            f'<div><dt>연속 번호</dt><dd>{" · ".join(f"{k}연" for k in a["run_lens"]) or "없음"}</dd></div>'
+            f'<div><dt>연속 번호</dt><dd>{f"{max(a['run_lens'])}연" if a["run_lens"] else "없음"}</dd></div>'
             f'<div class="wide"><dt>번호대 분포</dt><dd>{bands}</dd></div></dl>')
 
 
