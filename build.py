@@ -362,8 +362,8 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
          extra_head: str = "") -> str:
     url = SITE_URL + path
     verify = ""
-    if NAVER_VERIFY:
-        verify += f'<meta name="naver-site-verification" content="{e(NAVER_VERIFY)}">'
+    for v in NAVER_VERIFY.split():   # 2026-10-24: 옛 주소·새 도메인(lottoshinryeong.com) 확인값 모두(한 줄에 하나)
+        verify += f'<meta name="naver-site-verification" content="{e(v)}">'
     if GOOGLE_VERIFY:
         verify += f'<meta name="google-site-verification" content="{e(GOOGLE_VERIFY)}">'
     chans = " ".join(f'<a href="{e(c["url"])}" rel="noopener">{e(c["name"])}</a>' for c in d.links["channels"])
