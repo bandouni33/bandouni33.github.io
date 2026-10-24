@@ -628,6 +628,8 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
         shutil.rmtree(out)
     (out / "img").mkdir(parents=True)
     shutil.copy(HERE / "style.css", out / "style.css")
+    for g in HERE.glob("google*.html"):   # 2026-10-24 구글 서치콘솔 소유확인 파일(지우지 말 것 — 지우면 확인 해제)
+        shutil.copy(g, out / g.name)
     from PIL import Image
 
     icon = assets / "아이콘815.png"
