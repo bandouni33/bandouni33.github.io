@@ -191,8 +191,8 @@ main > h1:first-child{margin-top:22px}
 @media (min-width:900px){
   .top{display:none}
   .shell{display:grid;grid-template-columns:212px minmax(0,1fr);max-width:1440px;margin:0 auto}
-  .side{display:block;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding:18px 14px 32px;
-    border-right:1px solid var(--line)}
+  .side{display:block;position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:18px 14px 32px;
+    border-right:1px solid #3a4478;background:#0a0d20}   /* 2026-10-25(사용자): 본문과 구별되는 바탕 */
   .side .brand{margin-bottom:14px}
   .side .grp{margin-bottom:16px}
   main,footer{max-width:none}
@@ -300,3 +300,7 @@ a.tile:hover{border-color:var(--gold)}
 .rlist .m{font-size:13px;color:var(--muted);text-align:right}
 @media (max-width:900px){.tiles{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.tiles{grid-template-columns:1fr}.rlist a{grid-template-columns:58px 1fr;gap:6px 8px}.rlist .m{grid-column:2;text-align:left;margin-top:-2px}}
+.hero .sum{max-width:none}
+.rlist .det{margin-left:6px;padding:3px 10px;border:1px solid var(--gold);border-radius:999px;color:var(--gold);font-size:12px;font-weight:700;white-space:nowrap}
+.rlist a:hover .det{background:var(--gold);color:#111}
+@media (max-width:520px){.rlist .balls{gap:4px}.rlist .ball.sm{width:25px;height:25px;font-size:12px}.rlist .det{margin-left:2px;padding:2px 7px;font-size:11px}}

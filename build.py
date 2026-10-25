@@ -485,7 +485,9 @@ def index_page(d: Data) -> str:
             hi = [f"{i + 1}등 {v:,}" for i, v in enumerate(o[:3]) if v]
             out.append("신령 조합 " + " · ".join(hi + [f"4등 {o[3]:,}"]))
         return " · ".join(out)
-    rows = "".join(f'<li><a href="/round/{r}/"><span class="r">{r}회</span>{balls_row(d, r, "sm")}'
+    # 2026-10-25(사용자 지시): 보너스볼 바로 뒤 '상세보기' 버튼
+    rows = "".join(f'<li><a href="/round/{r}/"><span class="r">{r}회</span>'
+                   + balls_row(d, r, "sm")[:-len("</div>")] + '<span class="det">상세보기</span></div>'
                    f'<span class="m">{meta(r)}</span></a></li>' for r in sorted(d.draws, reverse=True)[:8])
     log = (f'<section class="rlog"><h2>회차별 기록</h2><ol class="rlist">{rows}</ol>'
            f'<p class="more"><a href="/rounds/">1회부터 전체 회차 보기</a></p></section>')
