@@ -276,3 +276,27 @@ main > h1:first-child{margin-top:22px}
 .xl em{font-style:normal;font-size:12px;padding:2px 7px;border-radius:10px;white-space:nowrap}
 .xl em.in{background:var(--gold);color:#111}.xl em.out{border:1px solid var(--line);color:var(--muted)}
 @media (max-width:520px){.xl{grid-template-columns:1fr auto}.xk{grid-column:1/-1}}
+
+/* 2026-10-25 메인 재정비 — 한 줄 요약 · 이번 주 한눈에(타일) · 회차별 기록(한 회차 한 줄) */
+.hero .sum{margin:12px 0 0;font-size:15px;line-height:1.6}
+.hero .btns{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.btn{display:inline-block;padding:9px 16px;border-radius:8px;background:#7a4a10;color:#fff;font-weight:700;text-decoration:none;font-size:14px}
+.btn.ghost{background:transparent;border:1px solid #7a4a10;color:#5a3608}
+.glance h2,.rlog h2{font-size:19px;margin:26px 0 10px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{display:block;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel);color:var(--ink);text-decoration:none}
+a.tile:hover{border-color:var(--gold)}
+.tile h3{margin:0 0 8px;font-size:15px;color:var(--gold)}
+.tile .k{margin:0 0 4px;font-size:12px;color:var(--muted)}
+.tile .one{margin:0;display:flex;gap:8px;align-items:center;font-size:14px;line-height:1.5}
+.tile .one img{border-radius:4px;flex:none}
+.tile .go{margin:8px 0 0;font-size:13px;color:var(--gold)}
+.tile .go::after{content:" →"}
+.rlist{list-style:none;margin:0;padding:0}
+.rlist a{display:grid;grid-template-columns:64px auto 1fr;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+.rlist a:hover{background:var(--panel)}
+.rlist .r{font-weight:700;color:var(--gold);white-space:nowrap}
+.tile .txt{margin:0;font-size:14px;line-height:1.7}
+.rlist .m{font-size:13px;color:var(--muted);text-align:right}
+@media (max-width:900px){.tiles{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.tiles{grid-template-columns:1fr}.rlist a{grid-template-columns:58px 1fr;gap:6px 8px}.rlist .m{grid-column:2;text-align:left;margin-top:-2px}}

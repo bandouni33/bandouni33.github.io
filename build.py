@@ -438,23 +438,64 @@ def round_page(d: Data, rnd: int) -> str:
 
 
 def index_page(d: Data) -> str:
+    """메인(2026-10-25 사용자 지시 '깔끔하게 정리·재정비·가독성 좋게'): ① 최신 회차 + 한 줄 요약 ② 이번 주 한눈에(타일 4개)
+    ③ 회차별 기록(한 회차 한 줄). 자세한 표(등수별·명당 주소·조합 성적·부적)는 회차 페이지에 그대로 있다."""
     rnd = d.latest
     dr = d.draws[rnd]
-    recent = "".join(f'<li><a href="/round/{r}/"><span class="r">{r}회</span>{balls_row(d, r, "sm")}</a></li>'
-                     for r in sorted(d.draws, reverse=True)[1:7])
-    body = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
-            f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}'
-            f'<p class="more"><a href="/round/{rnd}/">{rnd}회 자세히 보기</a></p></article>'
-            f'<div class="cols"><div class="col"><p class="colhead">이번 회차 결과</p>{result_block(d, rnd, compact=True)}{our_block(d)}</div>'
-            f'<div class="col"><p class="colhead">이번 주 이야기</p>{ent_block(d)}{tarot_block(d)}{talisman_block(d, rnd, True)}'
-            f'<section><h2>지난 회차</h2><ol class="recent">{recent}</ol>'
-            f'<p class="more"><a href="/rounds/">1회부터 전체 보기</a></p></section></div></div>{install_block(d)}')
+    res = d.results.get(rnd)
+    summary = ""
+    if res and res.get("ranks"):
+        f1 = res["ranks"][0]
+        kinds = " · ".join(f"{k} {v}" for k, v in res.get("first_kinds", {}).items())
+        regions = ", ".join(f"{k} {v}곳" for k, v in res.get("first_regions", [])[:3])
+        bits = [f"1등 <b>{f1['count']}명</b> · 1명당 <b>{eok(f1['amount'])}</b>"] + ([kinds] if kinds else []) \
+            + ([f"명당 {regions}"] if regions else [])
+        summary = f'<p class="sum">{" · ".join(bits)}</p>'
+    hero = (f'<article class="hero">{seal(rnd)}<div class="title"><h1>제{rnd}회 로또 당첨번호</h1>'
+            f'<p class="date">{date_kr(dr["date"])} 추첨</p></div>{balls_row(d, rnd, "big")}{summary}'
+            f'<p class="btns"><a class="btn" href="/round/{rnd}/">{rnd}회 결과·1등 명당</a>'
+            f'<a class="btn ghost" href="/tools/prize/">실수령액 계산</a></p></article>')
+
+    tiles = []
+    ex = (d.raw.get("exclude") or [None])[0]
+    if ex:
+        m6 = ("".join(ball(d, n, "sm") for n in ex["main6"]) if ex.get("main6") else "")
+        tiles.append(f'<a class="tile" href="/exclude/"><h3>{ex["round"]}회 제외수 참고</h3>'
+                     + (f'<p class="k">로또신령 메인 6숫자</p><div class="balls">{m6}</div>' if m6 else "")
+                     + '<p class="go">오래 쉰·최근 많이 나온·이웃수 보기</p></a>')
+    if d.headline and d.members:
+        h = d.headline
+        tiles.append(f'<a class="tile" href="/members/"><h3>이번 주 신령엔터</h3><p class="one">{ball(d, h["star"], "sm")}'
+                     f'<b>{e(h["title"])}</b></p><p class="go">45인조 전체 보기</p></a>')
+    t = d.tarot
+    tiles.append(f'<div class="tile"><h3>{t["round"]}회 신령 타로</h3><p class="one"><img src="/{e(t["image"])}" '
+                 f'alt="타로 카드 {e(t["name"])}" width="36" height="60" loading="lazy"><span><b>{e(t["name"])}</b> '
+                 f'<span class="small">{e(t["name_en"])}</span><br>{e(t["line"])}</span></p></div>')
+    tiles.append('<a class="tile" href="/guide/"><h3>판매·추첨 시간</h3><p class="txt">판매 마감 <b>토요일 저녁 8시</b><br>'
+                 '추첨 <b>토요일 저녁 8시 35분경</b></p><p class="go">당첨금 수령 방법 보기</p></a>')
+    glance = f'<section class="glance"><h2>이번 주 한눈에</h2><div class="tiles">{"".join(tiles)}</div></section>'
+
+    def meta(r):
+        out = []
+        rr = d.results.get(r)
+        if rr and rr.get("ranks"):
+            out.append(f'1등 {rr["ranks"][0]["count"]}명')
+        o = d.ours.get(r)
+        if o:
+            hi = [f"{i + 1}등 {v:,}" for i, v in enumerate(o[:3]) if v]
+            out.append("신령 조합 " + " · ".join(hi + [f"4등 {o[3]:,}"]))
+        return " · ".join(out)
+    rows = "".join(f'<li><a href="/round/{r}/"><span class="r">{r}회</span>{balls_row(d, r, "sm")}'
+                   f'<span class="m">{meta(r)}</span></a></li>' for r in sorted(d.draws, reverse=True)[:8])
+    log = (f'<section class="rlog"><h2>회차별 기록</h2><ol class="rlist">{rows}</ol>'
+           f'<p class="more"><a href="/rounds/">1회부터 전체 회차 보기</a></p></section>')
+    body = hero + glance + log + install_block(d)
     nums = ", ".join(map(str, dr["nums"]))
     first = _first_prize(d, rnd)
     return page(d, "/", f"로또 당첨번호 제{rnd}회 조회" + (f" · 1등 당첨금 {first}" if first else "") + f" | {SITE_NAME}",
                 f"최신 제{rnd}회 로또 당첨번호 {nums} + 보너스 {dr['bonus']}."
                 + (f" 1등 당첨금 1명당 {first}." if first else "")
-                + " 회차별 복권 당첨번호 조회, 1등 명당, 번호 통계, 당첨금 실수령액 계산, 로또 판매시간 안내.",
+                + " 회차별 복권 당첨번호 조회, 1등 명당, 번호 통계, 제외수 참고표, 당첨금 실수령액 계산, 로또 판매시간 안내.",
                 body)
 
 
