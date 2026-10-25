@@ -40,8 +40,12 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
   .topnav a{flex:none;padding:7px 13px;border:1px solid var(--line);border-radius:999px;font-size:13.5px;color:var(--ink)}
   .topnav a[aria-current]{background:var(--gold);border-color:var(--gold);color:#241c08}
   .menu summary{padding:6px 12px;font-size:13px}
-  .panel{left:12px;right:12px;grid-template-columns:1fr 1fr;gap:4px 10px;max-height:75vh;overflow-y:auto;padding:14px}
-  .grp{margin-bottom:10px}
+  /* 2026-10-25(사용자: 휴대폰 전체 메뉴 정렬 안 됨) — 묶음은 한 줄에 하나, 묶음 안 항목은 2칸 격자로 줄 맞춤 */
+  .panel{left:12px;right:12px;grid-template-columns:1fr;gap:0;max-height:75vh;overflow-y:auto;padding:12px 14px}
+  .grp{margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .grp:last-child{border-bottom:0;margin-bottom:0}
+  .grp ul{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+  .grp .note{grid-column:1/-1}
 }
 /* 넓은 화면 두 칸 */
 .cols{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0 36px;align-items:start}
@@ -257,3 +261,18 @@ main > h1:first-child{margin-top:22px}
 .lnapp{position:sticky;top:0;z-index:50;background:#e8c770;text-align:center}
 .lnapp button{width:100%;padding:11px 12px;border:0;background:transparent;color:#241c08;font:700 15px var(--sans);cursor:pointer}
 .in-app .sticky{top:44px}
+
+/* 2026-10-25 제외수 참고표(/exclude/) — 회차별 한 묶음, 항목은 한 줄씩 */
+.xr{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 12px;background:var(--panel)}
+.xr.now{border-color:var(--gold)}
+.xr h2{font-size:16px;margin:0 0 8px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.xr h2 a{color:var(--gold);margin-right:4px}
+.xl{display:grid;grid-template-columns:118px 1fr auto;align-items:center;gap:6px;padding:5px 0;border-top:1px dashed var(--line)}
+.xk{font-size:13px;color:var(--muted)}
+.xv{display:flex;flex-wrap:wrap;gap:4px 6px}
+.xb{display:inline-flex;flex-direction:column;align-items:center;border-radius:50%}
+.xb small{font-size:10px;color:var(--muted);line-height:1.2}
+.xb.hit .ball{box-shadow:0 0 0 3px var(--gold)}
+.xl em{font-style:normal;font-size:12px;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.xl em.in{background:var(--gold);color:#111}.xl em.out{border:1px solid var(--line);color:var(--muted)}
+@media (max-width:520px){.xl{grid-template-columns:1fr auto}.xk{grid-column:1/-1}}

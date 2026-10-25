@@ -365,7 +365,7 @@ def side(d: Data, path: str) -> str:
 
 
 NAV = [("/", "최신 회차"), ("/members/", "신령엔터 45인조"), ("/talisman/", "회차 부적"), ("/rounds/", "전체 회차"),
-       ("/stats/", "번호 통계"), ("/tools/prize/", "실수령액 계산"), ("/guide/", "판매시간·수령"),
+       ("/stats/", "번호 통계"), ("/exclude/", "제외수 참고"), ("/tools/prize/", "실수령액 계산"), ("/guide/", "판매시간·수령"),
        ("/about/", "앱 소개")]
 
 
@@ -487,6 +487,49 @@ def stats_page(d: Data) -> str:
             f'<p class="small">과거 출현 횟수는 다음 추첨 결과를 예측하지 않습니다. 매 회차 모든 번호의 확률은 같습니다.</p>')
     return page(d, "/stats/", f"로또 번호별 출현 횟수 통계({d.latest}회 기준) | {SITE_NAME}",
                 f"로또 1~45번 번호별 전체 출현 횟수, 최근 50회 출현, 마지막 출현 회차를 {d.latest}회 기준으로 정리.", body)
+
+
+def exclude_page(d: Data) -> str:
+    """2026-10-25(사용자 지시) '제외수 참고' — 회차별 한 묶음씩 깔끔하게(최신이 맨 위). 계산은 앱 저장소
+    weekly_content/exclude_ref.py(금요일 SNS 카드와 같은 것) → site_export 가 data.json 'exclude' 로 내보낸다.
+    당첨번호에 든 번호는 금테. 추천이 아니라 통계 사실만."""
+    rows = d.raw.get("exclude") or []
+
+    def chips(nums, win, subs=None):
+        out = []
+        for i, n in enumerate(nums):
+            hit = " hit" if n in win else ""
+            sub = f'<small>{e(subs[i])}</small>' if subs else ""
+            out.append(f'<span class="xb{hit}">{ball(d, n, "sm")}{sub}</span>')
+        return "".join(out)
+
+    blocks = []
+    for b in rows:
+        res = b.get("result")
+        win = set(res["nums"]) if res else set()
+        def tag(key):
+            if not res or res.get(key) is None:
+                return ""
+            k = res[key]
+            return f'<em class="{"in" if k else "out"}">{k}개 포함</em>'
+        lines = [("오래 쉰 번호", [x["n"] for x in b["long_gap"]], [f'{x["gap"]}회째' for x in b["long_gap"]], "long_gap"),
+                 ("최근 10회 많이 나온", [x["n"] for x in b["hot"]], [f'{x["count"]}회' for x in b["hot"]], "hot"),
+                 (f'{b["base"]}회 이웃수', b["neighbors"], None, "neighbors")]
+        if b.get("main6"):
+            lines.append(("로또신령 메인 6숫자", b["main6"], None, "main6"))
+        body = "".join(f'<div class="xl"><span class="xk">{e(t)}</span><span class="xv">{chips(ns, win, sb)}</span>{tag(k)}</div>'
+                       for t, ns, sb, k in lines)
+        head = (f'<a href="/round/{b["round"]}/">{b["round"]}회</a> 당첨번호 '
+                + "".join(ball(d, n, "sm") for n in res["nums"])) if res else f'{b["round"]}회 <span class="small">추첨 전</span>'
+        blocks.append(f'<section class="xr{" now" if not res else ""}"><h2>{head}</h2>{body}</section>')
+    body = ('<h1>로또 제외수 참고표</h1>'
+            '<p>매주 번호를 빼거나 넣기 전에 보는 숫자입니다. 지난 회차까지의 공식 당첨번호로 계산하고, 추첨 뒤에는 '
+            '실제 당첨번호가 몇 개 들었는지 그대로 적습니다(금테 = 그 회차 당첨번호).</p>'
+            + "".join(blocks) +
+            '<p class="small">앱 번개조합의 삭제수·고정수에 넣어 직접 조합할 수 있습니다.</p>')
+    latest = rows[0]["round"] if rows else d.latest + 1
+    return page(d, "/exclude/", f"로또 {latest}회 제외수 참고표 — 오래 쉰 번호·최근 많이 나온 번호 | {SITE_NAME}",
+                f"로또 {latest}회 제외수 고를 때 보는 통계: 오래 쉰 번호, 최근 10회 많이 나온 번호, 직전 회차 이웃수, 회차별 결과.", body)
 
 
 def prize_page(d: Data) -> str:
@@ -614,6 +657,8 @@ def sitemap(d: Data) -> str:
         urls += [("/members/", today, "0.9")] + [(f"/member/{n}/", today, "0.6") for n in range(1, 46)]
     if d.talismans:
         urls += [("/talisman/", today, "0.7")]
+    if d.raw.get("exclude"):
+        urls += [("/exclude/", today, "0.8")]
     urls += [(f"/round/{r}/", d.draws[r]["date"], "0.7" if r > d.latest - 10 else "0.4") for r in sorted(d.draws, reverse=True)]
     body = "".join(f"<url><loc>{SITE_URL}{p}</loc><lastmod>{m}</lastmod><priority>{pr}</priority></url>"
                    for p, m, pr in urls)
@@ -670,6 +715,8 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     w("index.html", index_page(d))
     w("rounds/index.html", rounds_page(d))
     w("stats/index.html", stats_page(d))
+    if d.raw.get("exclude"):
+        w("exclude/index.html", exclude_page(d))
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
     w("guide/index.html", guide_page(d))
