@@ -304,3 +304,8 @@ a.tile:hover{border-color:var(--gold)}
 .rlist .det{margin-left:6px;padding:3px 10px;border:1px solid var(--gold);border-radius:999px;color:var(--gold);font-size:12px;font-weight:700;white-space:nowrap}
 .rlist a:hover .det{background:var(--gold);color:#111}
 @media (max-width:520px){.rlist .balls{gap:4px}.rlist .ball.sm{width:25px;height:25px;font-size:12px}.rlist .det{margin-left:2px;padding:2px 7px;font-size:11px}}
+
+/* 2026-10-29 구글 결제 도움말 */
+.phs{display:grid;gap:12px;margin:16px 0}
+.ph h3{display:flex;gap:10px;align-items:center;font-size:17px}
+.ph h3 b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--gold);color:#111;font-size:15px;flex:none}

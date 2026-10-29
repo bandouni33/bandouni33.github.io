@@ -324,7 +324,8 @@ def sidebar(d: Data, path: str) -> str:
     site = "".join(link(h, lab) for h, lab in NAV)
     top = "".join(f'<a href="{h}"{" aria-current=page" if h == path else ""}>{lab}</a>' for h, lab in NAV)
     recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
-    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + "".join(
+    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + \
+        (link("/pay-help/", "구글 결제 도움말(비밀번호 몰라도)") if d.raw.get("pay_help") else "") + "".join(
         link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
     return (f'<header class="top"><div class="bar">'
@@ -351,7 +352,8 @@ def side(d: Data, path: str) -> str:
 
     site = "".join(link(h, lab) for h, lab in NAV)
     recent = "".join(link(f"/round/{r}/", f"{r}회 당첨번호") for r in sorted(d.draws, reverse=True)[:5])
-    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + "".join(
+    manual = (link("/manual/", "앱 사용설명서 (전체)") if d.manual else "") + \
+        (link("/pay-help/", "구글 결제 도움말(비밀번호 몰라도)") if d.raw.get("pay_help") else "") + "".join(
         link(m["url"], m["title"], True) for m in d.links.get("manual_posts", []))
     chans = "".join(link(c["url"], c["name"], True) for c in d.links["channels"])
     return (f'<aside class="side" aria-label="로또신령 전체 목록">'
@@ -575,6 +577,21 @@ def exclude_page(d: Data) -> str:
                 f"로또 {latest}회 제외수 고를 때 보는 통계: 오래 쉰 번호, 최근 10회 많이 나온 번호, 직전 회차 이웃수, 회차별 결과.", body)
 
 
+def pay_help_page(d: Data) -> str:
+    """2026-10-29(사용자 지시): 구글 비밀번호·패스키를 몰라 앱 결제에서 막힐 때 — 앱 충전창 안내와 같은 문구
+    (앱 저장소 legal_notices.GPLAY_PAY_HELP_* → site_export 'pay_help')."""
+    ph = d.raw.get("pay_help") or {}
+    steps = "".join(f'<section class="tile ph"><h3><b>{i}</b> {e(s["title"])}</h3><p class="txt">{e(s["body"])}</p></section>'
+                    for i, s in enumerate(ph.get("steps") or [], 1))
+    body = (f'<h1>{e(ph.get("title") or "구글 결제 도움말")}</h1>'
+            '<p>로또신령 앱의 적립금 충전·구독은 Google Play 결제로 이뤄집니다. 구글 계정 비밀번호는 휴대폰을 개통할 때만 써서 '
+            '기억이 안 나는 경우가 많아요. 아래를 한 번만 해 두면 다음부터는 지문으로 간편하게 결제됩니다.</p>'
+            f'<div class="phs">{steps}</div>'
+            '<p class="small">아이폰은 App Store 결제(Face ID·Touch ID)로 진행됩니다.</p>')
+    return page(d, "/pay-help/", f"구글 결제 비밀번호가 기억 안 날 때 — 지문 결제 설정법 | {SITE_NAME}",
+                "구글 플레이 결제 때 비밀번호를 몰라도 지문 결제 설정, 비밀번호 재설정, 휴대폰 결제로 간편하게 충전하는 방법.", body)
+
+
 def prize_page(d: Data) -> str:
     body = """<h1>로또 당첨금 실수령액 계산</h1>
 <p>당첨금을 넣으면 세금을 뺀 예상 실수령액을 보여줍니다.</p>
@@ -702,6 +719,8 @@ def sitemap(d: Data) -> str:
         urls += [("/talisman/", today, "0.7")]
     if d.raw.get("exclude"):
         urls += [("/exclude/", today, "0.8")]
+    if d.raw.get("pay_help"):
+        urls += [("/pay-help/", today, "0.5")]
     urls += [(f"/round/{r}/", d.draws[r]["date"], "0.7" if r > d.latest - 10 else "0.4") for r in sorted(d.draws, reverse=True)]
     body = "".join(f"<url><loc>{SITE_URL}{p}</loc><lastmod>{m}</lastmod><priority>{pr}</priority></url>"
                    for p, m, pr in urls)
@@ -760,6 +779,8 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     w("stats/index.html", stats_page(d))
     if d.raw.get("exclude"):
         w("exclude/index.html", exclude_page(d))
+    if d.raw.get("pay_help"):
+        w("pay-help/index.html", pay_help_page(d))
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
     w("guide/index.html", guide_page(d))
