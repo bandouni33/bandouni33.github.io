@@ -1,0 +1,29 @@
+name: 앱 서버 데워두기
+
+# 2026-10-30(사용자 결정): 앱 저장소를 비공개로 돌리면 Actions 무료 시간(월 2,000분)이 생긴다 → 비밀 값이 없는
+# 이 작업은 공개 저장소(홈페이지)로 옮겨 무료로 돌린다. 시간대별(사용자 요청): KST 07:00~23:30 30분마다, 심야(00~07시)는 쉼.
+# 실제 브라우저로 앱을 한 번 열어 서버 화면 코드를 돌린다(scripts/keep_warm.py — 원본은 앱 저장소 2026-10-18).
+on:
+  schedule:
+    - cron: "0,30 22,23 * * *"   # KST 07:00~08:30
+    - cron: "0,30 0-14 * * *"    # KST 09:00~23:30
+  workflow_dispatch: {}
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: true
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/keep_warm.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q playwright==1.48.0 && python -m playwright install --with-deps chromium
+      - run: python scripts/keep_warm.py
