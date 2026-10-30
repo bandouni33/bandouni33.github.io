@@ -86,6 +86,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: bandouni33/lotto-shinryeong
+          token: ${{ secrets.APP_REPO_TOKEN || github.token }}   # 2026-10-30: 비공개 앱 저장소 읽기
           path: app
           sparse-checkout: site_data
       - name: 검색엔진에 새 주소 알리기(IndexNow)
