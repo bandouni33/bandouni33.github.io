@@ -24,7 +24,7 @@ import hashlib as _hl
 CSS_VER = _hl.md5((HERE / "style.css").read_bytes()).hexdigest()[:8]   # 디자인 파일이 바뀌면 주소가 바뀌어 브라우저가 새로 받음
 NAVER_VERIFY = (HERE / "naver_verification.txt").read_text().strip() if (HERE / "naver_verification.txt").exists() else ""
 GOOGLE_VERIFY = (HERE / "google_verification.txt").read_text().strip() if (HERE / "google_verification.txt").exists() else ""
-DISCLAIMER = "참고·재미용 정보이며 당첨을 보장하지 않습니다. 복권은 만 19세 이상 구매할 수 있습니다."
+DISCLAIMER = ""   # 2026-11-09 사용자 지시: 재미용·19세 등 우려 문구 쓰지 않음(빈 값이면 바닥글 문단 생략)
 KST = dt.timezone(dt.timedelta(hours=9))
 
 e = html.escape
@@ -201,7 +201,7 @@ def ent_block(d: Data) -> str:
         cands = "".join(member_card(d, d.members[n]) for n in q["candidates"])
         qa = (f'<div class="qa"><h3>{q["round"]}회 신령 문답 — 공백기 멤버 중 이번 주 컴백할 번호는?</h3>'
               f'<div class="mgrid">{cands}</div><p class="small">스레드 @lottoshinryeong 에서 한 명 골라 댓글로 남겨주세요. '
-              f'토요일 밤 결과 공개. 재미로 보는 문답이며 예측이 아닙니다.</p></div>')
+              f'토요일 밤 결과 공개.</p></div>')
     return (f'<section class="ent"><h2>이번 주 신령엔터</h2><a class="ent-star" href="/member/{star["n"]}/">'
             f'{ball(d, star["n"], "big")}<span><b>{e(h["title"])}</b>'
             f'<span class="small">{h["round"]}회 기준 · 포지션 {star["position"]} · 통산 {star["total"]}회 무대</span></span></a>'
@@ -268,8 +268,7 @@ def members_page(d: Data) -> str:
         if g:
             body += f'<section><h2>{title}</h2><div class="mgrid">{"".join(member_card(d, m) for m in g)}</div></section>'
     body += (f'<section><h2>전체 멤버</h2><div class="mgrid">'
-             f'{"".join(member_card(d, d.members[n]) for n in range(1, 46))}</div></section>'
-             f'<p class="small">지난 기록을 이야기로 엮은 재미용 콘텐츠입니다. 매 회차 모든 번호의 당첨 확률은 같습니다.</p>')
+             f'{"".join(member_card(d, d.members[n]) for n in range(1, 46))}</div></section>')
     return page(d, "/members/", f"신령엔터 45인조 — 로또 번호 1~45 멤버 프로필 | {SITE_NAME}",
                 f"로또 번호 45개의 이번 주 상태: {d.headline['title'] if d.headline else ''}. 컴백·연속 무대·공백기·센터 라인업.",
                 body)
@@ -295,7 +294,6 @@ def member_page(d: Data, n: int) -> str:
             f'<section><h2>최근 {len(m["strip"])}회 무대 기록</h2><div class="strip" aria-label="최근 회차 출현 기록">{strip}</div>'
             f'<p class="small">왼쪽이 오래된 회차, 오른쪽이 {d.latest}회. 금색 칸이 출현한 회차입니다.</p></section>'
             f'<section><h2>최근 무대</h2><ul class="chips">{last5}</ul></section>'
-            f'<p class="small">지난 기록을 이야기로 엮은 재미용 콘텐츠입니다. 매 회차 모든 번호의 당첨 확률은 같습니다.</p>'
             f'{install_block(d)}<nav class="pager" aria-label="멤버 이동">{prev_}<a href="/members/">45인조 전체</a>{next_}</nav>')
     return page(d, f"/member/{n}/", f"로또 {n}번 — {member_line(m)} | 신령엔터 45인조 | {SITE_NAME}",
                 f"로또 번호 {n}번 기록: 통산 {m['total']}회 출현, 최근 50회 {m['recent']}회, 현재 공백 {m['gap']}회, 최장 공백 {m['max_gap']}회.",
@@ -394,7 +392,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
 <link rel="stylesheet" href="/style.css?v={CSS_VER}">{extra_head}</head>
 <body>{IN_APP}<div class="sticky">{app_bar(d)}{sidebar(d, path)}</div><div class="shell">{side(d, path)}<div class="content"><div class="appbar-pc">{_old_install_block(d)}</div>
 <main>{body}</main>
-<footer><p>{DISCLAIMER}</p><p>공식 채널 {chans}</p>
+<footer>{f'<p>{DISCLAIMER}</p>' if DISCLAIMER else ''}<p>공식 채널 {chans}</p>
 <p>당첨번호 출처: 동행복권 공식 발표 · 데이터 갱신 {e(d.raw["generated_at"][:10])}</p></footer></div></div></body></html>"""
 
 
@@ -640,7 +638,7 @@ GUIDE_FAQ = [
     ("로또 1등 당첨금 세금은 얼마인가요?",
      "200만원 이하는 세금이 없고, 200만원 초과분은 3억원까지 22%, 3억원 초과분은 33%입니다. 실수령액은 실수령액 계산기에서 바로 계산됩니다."),
     ("한 번에 얼마까지 살 수 있나요?",
-     "판매점은 1인 1회 10만원까지, 인터넷(동행복권)은 1인 1회차 5천원까지 살 수 있습니다. 만 19세 미만은 살 수 없습니다."),
+     "판매점은 1인 1회 10만원까지, 인터넷(동행복권)은 1인 1회차 5천원까지 살 수 있습니다."),
 ]
 
 
