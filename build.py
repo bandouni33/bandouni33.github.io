@@ -380,6 +380,7 @@ def page(d: Data, path: str, title: str, desc: str, body: str, *, og_image: str 
     chans = " ".join(f'<a href="{e(c["url"])}" rel="noopener">{e(c["name"])}</a>' for c in d.links["channels"])
     return f"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* 2026-11-14 인스타·스레드가 /app/ 주소를 받지 않아 → 홈페이지 주소 ?app=1 로 같은 설치 바로가기 */if(/[?&]app=1(&|$)/.test(location.search)){{var u=navigator.userAgent||"";if(/Android/i.test(u))location.replace("{PLAY_SNS_URL}");else if(/iPhone|iPad|iPod/i.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1))location.replace("{APP_STORE_URL}");}}</script>
 <title>{e(title)}</title><meta name="description" content="{e(desc)}"><link rel="canonical" href="{url}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}">
 <meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}">
