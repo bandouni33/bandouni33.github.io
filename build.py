@@ -704,6 +704,26 @@ def notfound_page(d: Data) -> str:
                 f'<script>if(/^\\/round\\/\\d+\\/?$/.test(location.pathname))location.replace("/");</script>')
 
 
+# 설치 바로가기(2026-11-14 사용자 승인 '진행') — SNS 영상 5쪽·게시글·프로필 링크 하나로 통일.
+# 안드로이드 → 구글 플레이, 아이폰·아이패드 → 앱스토어로 바로 이동. 그 밖(PC 등)은 두 버튼을 보여 준다.
+APP_STORE_URL = "https://apps.apple.com/kr/app/id6807004547"
+PLAY_SNS_URL = "https://play.google.com/store/apps/details?id=com.bandouni.lottoshinryeong&referrer=utm_source%3Dsns%26utm_medium%3Dvideo%26utm_campaign%3Dapp_link"
+
+
+def app_link_page(d: Data) -> str:
+    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>로또신령 설치</title>
+<script>(function(){{var u=navigator.userAgent||"",ios=/iPhone|iPad|iPod/i.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+if(/Android/i.test(u))location.replace("{PLAY_SNS_URL}");else if(ios)location.replace("{APP_STORE_URL}");}})();</script>
+<style>body{{margin:0;font-family:system-ui,sans-serif;background:#0d1330;color:#fff;text-align:center;padding:48px 16px}}
+img{{width:96px;height:96px;border-radius:22px}}h1{{font-size:24px;margin:16px 0 28px}}
+a{{display:block;max-width:320px;margin:12px auto;padding:16px;border-radius:14px;font-size:18px;font-weight:700;text-decoration:none;color:#111;background:#ffd54a}}
+a.ios{{background:#fff}}p{{opacity:.7;font-size:14px}}</style></head>
+<body><img src="/img/icon.png" alt="로또신령 아이콘"><h1>로또신령 설치</h1>
+<a href="{PLAY_SNS_URL}" rel="noopener">구글 플레이에서 설치</a><a class="ios" href="{APP_STORE_URL}" rel="noopener">앱스토어에서 설치</a>
+<p>무료 · 간단 설치</p></body></html>"""
+
+
 # ── 검색엔진용 파일 ───────────────────────────────────────────────────
 def sitemap(d: Data) -> str:
     today = d.raw["generated_at"][:10]
@@ -787,6 +807,7 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     if d.manual:
         w("manual/index.html", manual_page(d))
     w("404.html", notfound_page(d))
+    w("app/index.html", app_link_page(d))
     if d.members:
         w("members/index.html", members_page(d))
         for n in range(1, 46):
