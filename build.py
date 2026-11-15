@@ -714,6 +714,10 @@ PLAY_SNS_URL = "https://play.google.com/store/apps/details?id=com.bandouni.lotto
 def app_link_page(d: Data) -> str:
     return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>로또신령 설치</title>
+<meta property="og:type" content="website"><meta property="og:site_name" content="{SITE_NAME}">
+<meta property="og:title" content="로또신령 — 무료 사용 설치"><meta property="og:description" content="간단 설치 · 개인정보 입력 없이 · 첫 가입 500P로 번호 조합 무료 체험">
+<meta property="og:url" content="{SITE_URL}/app/"><meta property="og:image" content="{SITE_URL}/img/og_app.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <script>(function(){{var u=navigator.userAgent||"",ios=/iPhone|iPad|iPod/i.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 if(/Android/i.test(u))location.replace("{PLAY_SNS_URL}");else if(ios)location.replace("{APP_STORE_URL}");}})();</script>
 <style>body{{margin:0;font-family:system-ui,sans-serif;background:#0d1330;color:#fff;text-align:center;padding:48px 16px}}
@@ -773,6 +777,7 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
     if icon.exists():
         Image.open(icon).convert("RGBA").resize((192, 192), Image.LANCZOS).save(out / "img/icon.png", optimize=True)
     shutil.copy(HERE / "og.png", out / "img/og.png")
+    shutil.copy(HERE / "og_app.png", out / "img/og_app.png")   # 2026-11-15: /app/ 링크 카드(스레드·페북 첫 댓글)
     # 앱(로또신령 자동조합) 조합 생성 연출 그림 — 앱 저장소 scripts/make_spirit2_gen_anim.py 로 구운 파일(2026-10-20)
     if (HERE / "fx").is_dir():
         shutil.copytree(HERE / "fx", out / "fx")
