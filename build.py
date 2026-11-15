@@ -576,6 +576,45 @@ def exclude_page(d: Data) -> str:
                 f"로또 {latest}회 제외수 고를 때 보는 통계: 오래 쉰 번호, 최근 10회 많이 나온 번호, 직전 회차 이웃수, 회차별 결과.", body)
 
 
+def _legal_md(text: str) -> str:
+    """앱 약관 문구(간단한 마크다운: **굵게**·[링크](주소)·'- ' 목록·빈 줄 문단)를 HTML 로."""
+    import re as _re
+
+    def inline(t: str) -> str:
+        t = e(t)
+        t = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+        return _re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)", r'<a href="\2" rel="noopener">\1</a>', t)
+
+    out = []
+    for block in _re.split(r"\n\s*\n", text.strip()):
+        lines = [x.strip() for x in block.splitlines() if x.strip()]
+        if lines and all(x.startswith("- ") for x in lines):
+            out.append("<ul>" + "".join(f"<li>{inline(x[2:])}</li>" for x in lines) + "</ul>")
+        else:
+            # 번호 줄(1. 2. …)은 새 줄로, 이어지는 줄(들여쓰기)은 붙인다
+            merged = []
+            for x in lines:
+                if merged and not _re.match(r"^(\d+\.|- |·)", x):
+                    merged[-1] += " " + x
+                else:
+                    merged.append(x)
+            out.append("<p>" + "<br>".join(inline(x[2:] if x.startswith("- ") else x) for x in merged) + "</p>")
+    return "".join(out)
+
+
+def legal_page(d: Data, which: str) -> str:
+    """2026-11-15: 이용약관(/terms/)·개인정보 처리방침(/privacy/) — 앱 '약관·정책'과 같은 문구(site_export 'legal').
+    Play Console '서비스 약관 URL'(로그인·넘겨주기 없는 고정 웹페이지 필요)용."""
+    lg = d.raw.get("legal") or {}
+    keys = ("terms", "points", "disclaimer", "business") if which == "terms" else ("privacy", "business")
+    secs = "".join(f'<section class="tile legal"><h2>{e(lg[k]["title"])}</h2>{_legal_md(lg[k]["body"])}</section>'
+                   for k in keys if k in lg)
+    title = "이용약관" if which == "terms" else "개인정보 처리방침"
+    body = (f"<h1>로또신령 {title}</h1>{secs}"
+            '<p class="small">앱 안 [내정보] 화면의 약관·정책과 같은 내용입니다. 문의: bandouni@naver.com</p>')
+    return page(d, f"/{which}/", f"{title} | {SITE_NAME}", f"로또신령 {title} — 앱과 같은 내용.", body)
+
+
 def pay_help_page(d: Data) -> str:
     """2026-10-29(사용자 지시): 구글 비밀번호·패스키를 몰라 앱 결제에서 막힐 때 — 앱 충전창 안내와 같은 문구
     (앱 저장소 legal_notices.GPLAY_PAY_HELP_* → site_export 'pay_help')."""
@@ -807,6 +846,9 @@ def build(data_path: Path, assets: Path, out: Path) -> list[Path]:
         w("exclude/index.html", exclude_page(d))
     if d.raw.get("pay_help"):
         w("pay-help/index.html", pay_help_page(d))
+    if d.raw.get("legal"):
+        w("terms/index.html", legal_page(d, "terms"))
+        w("privacy/index.html", legal_page(d, "privacy"))
     w("tools/prize/index.html", prize_page(d))
     w("about/index.html", about_page(d))
     w("guide/index.html", guide_page(d))
