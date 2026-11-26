@@ -13,6 +13,9 @@ on:
     # 2026-10-22(사용자 지시 "앱·홈페이지 항상 일치"): 매시간 확인 — 앱 저장소 site_data 가 지난 1시간 안에 바뀐 경우만 새로 만든다
     # (바뀐 게 없으면 만들기·배포·검색엔진 알림을 하지 않는다).
     - cron: "17 * * * *"
+    # 2026-11-26(사용자 지시, 1252회 사고 — 예약 밀림으로 목요일 영상이 게시 뒤에야 배포됨): 목요일 게시(12:00 KST) 전 강제 배포 2번
+    - cron: "10 1 * * 4"    # 목 10:10 KST
+    - cron: "35 2 * * 4"    # 목 11:35 KST
   workflow_dispatch: {}
 
 permissions:
@@ -43,6 +46,12 @@ jobs:
           # 2026-11-16: 목요일 게시 영상(앱 저장소 'media-fri' 브랜치)이 바뀌어도 새로 만든다
           lm=$(gh api "repos/bandouni33/lotto-shinryeong/commits/media-fri" -q '.commit.committer.date' 2>/dev/null || echo "")
           if [ -n "$lm" ] && [ $(( $(date +%s) - $(date -d "$lm" +%s) )) -le 3900 ]; then echo "목요일 영상 갱신: $lm"; echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # 2026-11-26: 시간 창(65분)을 놓쳐도 — media-fri 영상이 아직 홈페이지 주소에서 안 열리면 새로 만든다
+          mf=$(gh api "repos/bandouni33/lotto-shinryeong/contents?ref=media-fri" -q '.[].name' 2>/dev/null | grep '\.mp4$' | head -1 || true)
+          if [ -n "$mf" ]; then
+            mc=$(curl -s -o /dev/null -w '%{http_code}' -I "https://lottoshinryeong.com/media/$mf" || true)
+            if [ "$mc" != "200" ]; then echo "목요일 영상 미배포: $mf ($mc)"; echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          fi
           age=$(( $(date +%s) - $(date -d "$last" +%s) ))
           echo "앱 데이터 마지막 변경: $last (${age}초 전)"
           if [ "$age" -le 3900 ]; then echo "go=true" >> "$GITHUB_OUTPUT"; else echo "go=false" >> "$GITHUB_OUTPUT"; fi
